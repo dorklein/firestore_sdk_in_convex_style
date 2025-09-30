@@ -149,8 +149,13 @@ export class Database<S extends SchemaDefinition> implements DatabaseWriter<Extr
 
     const docRef = this.db.collection(tableName as string).doc();
 
+    // Remove undefined values (Firestore doesn't accept them)
+    const cleanedData = Object.fromEntries(
+      Object.entries(validated).filter(([_, v]) => v !== undefined)
+    );
+
     const dataToInsert = {
-      ...validated,
+      ...cleanedData,
       _creationTime: Date.now(),
     };
 
@@ -184,8 +189,13 @@ export class Database<S extends SchemaDefinition> implements DatabaseWriter<Extr
     const existing = await docRef.get();
     const creationTime = existing.data()?._creationTime || Date.now();
 
+    // Remove undefined values (Firestore doesn't accept them)
+    const cleanedData = Object.fromEntries(
+      Object.entries(validated).filter(([_, v]) => v !== undefined)
+    );
+
     await docRef.set({
-      ...validated,
+      ...cleanedData,
       _creationTime: creationTime,
     });
   }

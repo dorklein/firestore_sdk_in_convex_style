@@ -23,11 +23,19 @@ pnpm test:unit
 
 # Run only integration tests
 pnpm test:integration
+
+# Run only E2E tests (requires Firebase emulator)
+pnpm test:e2e
+
+# Start Firebase emulator
+pnpm emulator:start
 ```
 
 ## Test Structure
 
 ### Unit Tests (`tests/unit/`)
+
+Fast, isolated tests using mocked dependencies.
 
 Unit tests focus on testing individual components in isolation:
 
@@ -38,7 +46,7 @@ Unit tests focus on testing individual components in isolation:
 
 ### Integration Tests (`tests/integration/`)
 
-Integration tests verify complete workflows across multiple components:
+Tests that verify workflows across multiple components using mocks:
 
 - **`full-workflow.test.ts`** - End-to-end business scenarios:
   - User management workflow
@@ -47,6 +55,17 @@ Integration tests verify complete workflows across multiple components:
   - Multi-user data isolation
   - Complete business flows
   - Error handling and validation
+
+### E2E Tests (`tests/e2e/`)
+
+End-to-end tests that run against **Firebase Emulator**. These test the SDK with a real Firestore instance.
+
+**Requirements:** Firebase Emulator must be running
+
+- **`database.e2e.test.ts`** - Database CRUD and query operations against real Firestore
+- **`workflows.e2e.test.ts`** - Complete business workflows with real data persistence
+
+See [`tests/e2e/README.md`](./e2e/README.md) for detailed E2E test documentation.
 
 ## Test Coverage
 

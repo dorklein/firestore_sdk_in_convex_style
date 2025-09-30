@@ -5,6 +5,7 @@ export default defineConfig({
     globals: true,
     environment: "node",
     include: ["tests/**/*.test.ts"],
+    exclude: ["tests/e2e/**/*.test.ts"], // E2E tests need emulator, run separately
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "html"],

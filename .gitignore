@@ -1,8 +1,10 @@
-node_modules/
-dist/
+node_modules
+dist
+coverage
 *.log
-.DS_Store
-.env
-*.tsbuildinfo
 
-
+# Firebase emulator
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
