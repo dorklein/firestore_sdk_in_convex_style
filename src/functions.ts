@@ -1,7 +1,7 @@
 import { Firestore } from "firebase-admin/firestore";
 import * as v from "valibot";
 import type { Schema, SchemaDefinition, ExtractDataModel } from "./schema";
-import { Database, DatabaseReader, DatabaseWriter } from "./database";
+import { Database, DatabaseReader, DatabaseWriter, TransactionalDatabase } from "./database";
 import type { Validator } from "./validators";
 
 // Context types
@@ -145,13 +145,21 @@ export class FunctionRunner<S extends SchemaDefinition> {
     // Validate arguments
     const args = this.validateArgs(definition.args, rawArgs);
 
-    // Create context
-    const ctx: MutationContext<ExtractDataModel<S>> = {
-      db: this.db,
-    };
+    // Run mutation inside a Firestore transaction
+    const firestore = this.db.getFirestore();
+    return await firestore.runTransaction(async (transaction) => {
+      // Create a transactional database wrapper
+      const txDb = new TransactionalDatabase(firestore, this.schema, transaction);
 
-    // Execute handler
-    return await definition.handler(ctx, args);
+      // Create context with transactional database
+      const ctx: MutationContext<ExtractDataModel<S>> = {
+        db: txDb,
+      };
+
+      // Execute handler within the transaction
+      // If the handler throws, the transaction will automatically roll back
+      return await definition.handler(ctx, args);
+    });
   }
 
   private validateArgs<Args extends Record<string, Validator>>(

@@ -11,7 +11,7 @@ const CUSTOMER_NOT_FOUND_ERROR = "Customer not found";
 const USER_NOT_FOUND_ERROR = "User not found";
 
 // Queries
-export const getCustomerById = internalQuery<DataModel>({
+export const getCustomerById = internalQuery({
   args: { customerId: v.id("customers") },
   handler: async (ctx, args) => {
     const customer = await ctx.db.get(args.customerId);
@@ -20,7 +20,7 @@ export const getCustomerById = internalQuery<DataModel>({
   },
 });
 
-export const getCustomersByUser = internalQuery<DataModel>({
+export const getCustomersByUser = internalQuery({
   args: {
     userId: v.id("users"),
     searchName: v.optional(v.string()),
@@ -39,7 +39,7 @@ export const getCustomersByUser = internalQuery<DataModel>({
   },
 });
 
-export const getInvoicesByStatus = internalQuery<DataModel>({
+export const getInvoicesByStatus = internalQuery({
   args: {
     userId: v.id("users"),
     status: v.union(
@@ -62,7 +62,7 @@ export const getInvoicesByStatus = internalQuery<DataModel>({
 });
 
 // Mutations
-export const createCustomer = internalMutation<DataModel>({
+export const createCustomer = internalMutation({
   args: {
     userId: v.id("users"),
     name: v.string(),
@@ -92,7 +92,7 @@ export const createCustomer = internalMutation<DataModel>({
   },
 });
 
-export const updateCustomer = internalMutation<DataModel>({
+export const updateCustomer = internalMutation({
   args: {
     customerId: v.id("customers"),
     name: v.optional(v.string()),
@@ -113,7 +113,7 @@ export const updateCustomer = internalMutation<DataModel>({
   },
 });
 
-export const createInvoice = internalMutation<DataModel>({
+export const createInvoice = internalMutation({
   args: {
     customerId: v.id("customers"),
     number: v.string(),
@@ -154,7 +154,7 @@ export const createInvoice = internalMutation<DataModel>({
   },
 });
 
-export const updateInvoiceStatus = internalMutation<DataModel>({
+export const updateInvoiceStatus = internalMutation({
   args: {
     invoiceId: v.id("invoices"),
     status: v.union(
@@ -171,7 +171,7 @@ export const updateInvoiceStatus = internalMutation<DataModel>({
   },
 });
 
-export const deleteCustomer = internalMutation<DataModel>({
+export const deleteCustomer = internalMutation({
   args: {
     customerId: v.id("customers"),
   },

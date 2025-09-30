@@ -54,39 +54,63 @@ const createMockFirestoreWithFullAPI = () => {
     };
   };
 
-  return {
-    collection: vi.fn((name: string) => ({
-      doc: vi.fn((id?: string) => {
-        const docId = id || `doc_${Math.random().toString(36).substr(2, 9)}`;
-        const key = `${name}/${docId}`;
+  const createDocRef = (name: string, id?: string) => {
+    const docId = id || `doc_${Math.random().toString(36).substr(2, 9)}`;
+    const key = `${name}/${docId}`;
 
-        return {
-          id: docId,
-          get: vi.fn(async () => ({
-            exists: !!mockData[key],
-            id: docId,
-            data: () => mockData[key],
-          })),
-          set: vi.fn(async (data: any) => {
-            mockData[key] = data;
-          }),
-          update: vi.fn(async (data: any) => {
-            if (mockData[key]) {
-              mockData[key] = { ...mockData[key], ...data };
-            }
-          }),
-          delete: vi.fn(async () => {
-            delete mockData[key];
-          }),
-        };
+    return {
+      id: docId,
+      get: vi.fn(async () => ({
+        exists: !!mockData[key],
+        id: docId,
+        data: () => mockData[key],
+      })),
+      set: vi.fn(async (data: any) => {
+        mockData[key] = data;
       }),
+      update: vi.fn(async (data: any) => {
+        if (mockData[key]) {
+          mockData[key] = { ...mockData[key], ...data };
+        }
+      }),
+      delete: vi.fn(async () => {
+        delete mockData[key];
+      }),
+    };
+  };
+
+  const firestore = {
+    collection: vi.fn((name: string) => ({
+      doc: vi.fn((id?: string) => createDocRef(name, id)),
       ...createQuery(name),
     })),
+    runTransaction: vi.fn(async (updateFunction: any) => {
+      // Create a mock transaction that behaves similarly to the real one
+      const transaction = {
+        get: vi.fn(async (docRef: any) => {
+          return await docRef.get();
+        }),
+        set: vi.fn((docRef: any, data: any) => {
+          return docRef.set(data);
+        }),
+        update: vi.fn((docRef: any, data: any) => {
+          return docRef.update(data);
+        }),
+        delete: vi.fn((docRef: any) => {
+          return docRef.delete();
+        }),
+      };
+
+      // Execute the transaction function
+      return await updateFunction(transaction);
+    }),
     _mockData: mockData,
     _clearData: () => {
       Object.keys(mockData).forEach((key) => delete mockData[key]);
     },
   };
+
+  return firestore;
 };
 
 // Define schema for integration tests

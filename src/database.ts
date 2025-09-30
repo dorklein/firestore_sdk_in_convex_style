@@ -1,4 +1,4 @@
-import { Firestore, DocumentSnapshot } from "firebase-admin/firestore";
+import { Firestore, DocumentSnapshot, Transaction } from "firebase-admin/firestore";
 import type { Schema, SchemaDefinition, ExtractDataModel } from "./schema";
 import type { DocumentId } from "./validators";
 
@@ -102,9 +102,146 @@ export class QueryBuilder<Doc> {
   }
 }
 
+// Transactional Database implementation for mutations
+export class TransactionalDatabase<S extends SchemaDefinition>
+  implements DatabaseWriter<ExtractDataModel<S>>
+{
+  constructor(private db: Firestore, private schema: Schema<S>, private transaction: Transaction) {}
+
+  async get<TableName extends keyof ExtractDataModel<S>>(
+    id: DocumentId<TableName & string>
+  ): Promise<ExtractDataModel<S>[TableName] | null> {
+    const { tableName, docId } = this.parseId(id as string);
+
+    const docRef = this.db.collection(tableName).doc(docId);
+    const doc = await this.transaction.get(docRef);
+
+    if (!doc.exists) {
+      return null;
+    }
+
+    const data = doc.data();
+    if (!data) {
+      return null;
+    }
+
+    // Validate against schema
+    const validated = this.schema.validateDocument(tableName, data);
+
+    return {
+      ...validated,
+      _id: this.createId(tableName, doc.id),
+      _creationTime: data._creationTime || Date.now(),
+    } as ExtractDataModel<S>[TableName];
+  }
+
+  query<TableName extends keyof ExtractDataModel<S>>(
+    tableName: TableName
+  ): QueryBuilder<ExtractDataModel<S>[TableName]> {
+    // Note: Queries in transactions are read-only and execute immediately
+    return new QueryBuilder(this.db, tableName as string, this.schema, tableName as string);
+  }
+
+  async insert<TableName extends keyof ExtractDataModel<S>>(
+    tableName: TableName,
+    document: Omit<ExtractDataModel<S>[TableName], "_id" | "_creationTime">
+  ): Promise<DocumentId<TableName & string>> {
+    // Validate against schema
+    const validated = this.schema.validateDocument(tableName as string, document);
+
+    const docRef = this.db.collection(tableName as string).doc();
+
+    // Remove undefined values (Firestore doesn't accept them)
+    const cleanedData = Object.fromEntries(
+      Object.entries(validated).filter(([_, v]) => v !== undefined)
+    );
+
+    const dataToInsert = {
+      ...cleanedData,
+      _creationTime: Date.now(),
+    };
+
+    // Use transaction.set instead of direct set
+    this.transaction.set(docRef, dataToInsert);
+
+    // Return ID in format "tableName:docId" for proper tracking
+    return this.createId(tableName as TableName & string, docRef.id);
+  }
+
+  async patch<TableName extends keyof ExtractDataModel<S>>(
+    id: DocumentId<TableName & string>,
+    partial: Partial<Omit<ExtractDataModel<S>[TableName], "_id" | "_creationTime">>
+  ): Promise<void> {
+    const { tableName, docId } = this.parseId(id as string);
+
+    const docRef = this.db.collection(tableName).doc(docId);
+    this.transaction.update(docRef, partial as any);
+  }
+
+  async replace<TableName extends keyof ExtractDataModel<S>>(
+    id: DocumentId<TableName & string>,
+    document: Omit<ExtractDataModel<S>[TableName], "_id" | "_creationTime">
+  ): Promise<void> {
+    const { tableName, docId } = this.parseId(id as string);
+
+    // Validate against schema
+    const validated = this.schema.validateDocument(tableName, document);
+
+    const docRef = this.db.collection(tableName).doc(docId);
+
+    // Get existing creation time
+    const existing = await this.transaction.get(docRef);
+    const creationTime = existing.data()?._creationTime || Date.now();
+
+    // Remove undefined values (Firestore doesn't accept them)
+    const cleanedData = Object.fromEntries(
+      Object.entries(validated).filter(([_, v]) => v !== undefined)
+    );
+
+    this.transaction.set(docRef, {
+      ...cleanedData,
+      _creationTime: creationTime,
+    });
+  }
+
+  async delete<TableName extends keyof ExtractDataModel<S>>(
+    id: DocumentId<TableName & string>
+  ): Promise<void> {
+    const { tableName, docId } = this.parseId(id as string);
+
+    const docRef = this.db.collection(tableName).doc(docId);
+    this.transaction.delete(docRef);
+  }
+
+  private parseId(id: string): { tableName: string; docId: string } {
+    const parts = id.split(":");
+    if (parts.length !== 2) {
+      throw new Error(`Invalid ID format: ${id}. Expected "tableName:docId"`);
+    }
+    return { tableName: parts[0], docId: parts[1] };
+  }
+
+  private createId<TableName extends string>(
+    tableName: TableName,
+    docId: string
+  ): DocumentId<TableName> {
+    return `${tableName}:${docId}` as DocumentId<TableName>;
+  }
+}
+
 // Database implementation
 export class Database<S extends SchemaDefinition> implements DatabaseWriter<ExtractDataModel<S>> {
   constructor(private db: Firestore, private schema: Schema<S>) {}
+
+  // Expose the Firestore instance for transaction handling
+  getFirestore(): Firestore {
+    return this.db;
+  }
+
+  // Expose the schema for transaction handling
+  getSchema(): Schema<S> {
+    return this.schema;
+  }
 
   async get<TableName extends keyof ExtractDataModel<S>>(
     id: DocumentId<TableName & string>
