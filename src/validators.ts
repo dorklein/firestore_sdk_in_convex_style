@@ -99,6 +99,15 @@ export function union<T extends Validator[]>(...validators: T): Validator<T[numb
   };
 }
 
+// Any validator
+export function any(): Validator<any> {
+  return {
+    _type: undefined as any,
+    _schema: v.any(),
+    _isOptional: false,
+  };
+}
+
 // Export all validators under 'v' namespace for convenience
 export const validators = {
   string,
@@ -110,5 +119,5 @@ export const validators = {
   object,
   literal,
   union,
+  any,
 };
-
