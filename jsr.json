@@ -17,7 +17,7 @@
       "values/mod.ts",
       "src/**/*.ts",
       "bin/**/*.js",
-      "dist/**/*.js",
+      "dist",
       "README.md",
       "LICENSE"
     ],
