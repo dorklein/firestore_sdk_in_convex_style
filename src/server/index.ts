@@ -107,6 +107,7 @@ export type {
   FunctionType,
   FunctionReference,
   FunctionArgs,
+  FunctionReturn,
   OptionalRestArgs,
   FunctionReturnType,
 } from "./api.ts";
@@ -131,3 +132,5 @@ export { defineTable, defineSchema } from "./schema.ts";
  * @public
  */
 export type { BetterOmit, Expand } from "../type_utils.js";
+
+export { createFunctionRunner, FunctionRunner } from "./functions.js";

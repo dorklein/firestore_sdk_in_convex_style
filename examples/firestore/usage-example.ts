@@ -5,10 +5,11 @@
 
 import * as admin from "firebase-admin";
 import { internalQuery, internalMutation } from "./_generated/server.js";
-import type { Id, Doc, FunctionArgs, FunctionReturn } from "./_generated/dataModel.js";
-import { v } from "../src/index.js";
-import { DatabaseImpl } from "../src/server/database.js";
+import type { Id, Doc } from "./_generated/dataModel.js";
+import { v } from "../../src/index.js";
+import { DatabaseImpl } from "../../src/server/database.js";
 import { schema } from "./schema.js";
+import { FunctionArgs, FunctionReturn } from "@smartbill/firestore-convex-style/server";
 
 // Initialize Firebase Admin (you'd normally do this once in your app)
 if (!admin.apps.length) {
@@ -18,7 +19,6 @@ if (!admin.apps.length) {
 }
 
 const firestore = admin.firestore();
-const db = new DatabaseImpl(firestore, schema);
 
 /**
  * Example Query: Get a user by ID

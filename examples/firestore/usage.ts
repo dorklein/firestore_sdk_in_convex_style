@@ -4,10 +4,10 @@
  */
 
 import * as admin from "firebase-admin";
-import { createFunctionRunner } from "../src/server/functions.js";
+import { createFunctionRunner } from "@smartbill/firestore-convex-style/server";
 import { schema } from "./schema.js";
 import { internalQuery, internalMutation } from "./_generated/server.js";
-import { v } from "../src/index.js";
+import { v } from "@smartbill/firestore-convex-style/values";
 import type { Id } from "./_generated/dataModel.js";
 
 // Initialize Firebase Admin
