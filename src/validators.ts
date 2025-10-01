@@ -111,6 +111,17 @@ export function union<T extends Validator[]>(...validators: T): Validator<T[numb
   };
 }
 
+// Picklist validator - simpler alternative to union for literal values
+export function picklist<T extends readonly [string, ...string[]]>(
+  options: T
+): Validator<T[number]> {
+  return {
+    _type: undefined as any,
+    _schema: v.picklist(options),
+    _isOptional: false,
+  };
+}
+
 // Any validator
 export function any(): Validator<any> {
   return {
@@ -132,5 +143,6 @@ export const validators = {
   record,
   literal,
   union,
+  picklist,
   any,
 };

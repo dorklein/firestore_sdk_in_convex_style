@@ -106,6 +106,42 @@ describe("Validators", () => {
     });
   });
 
+  describe("v.picklist()", () => {
+    it("should create a picklist validator with string options", () => {
+      const validator = v.picklist(["admin", "user", "guest"]);
+      expect(valibot.parse(validator._schema, "admin")).toBe("admin");
+      expect(valibot.parse(validator._schema, "user")).toBe("user");
+      expect(valibot.parse(validator._schema, "guest")).toBe("guest");
+    });
+
+    it("should reject values not in the picklist", () => {
+      const validator = v.picklist(["admin", "user"]);
+      expect(() => valibot.parse(validator._schema, "guest")).toThrow();
+      expect(() => valibot.parse(validator._schema, "superuser")).toThrow();
+    });
+
+    it("should work with role-based access control", () => {
+      const validator = v.picklist(["read", "write", "delete"]);
+      expect(valibot.parse(validator._schema, "read")).toBe("read");
+      expect(valibot.parse(validator._schema, "write")).toBe("write");
+      expect(valibot.parse(validator._schema, "delete")).toBe("delete");
+    });
+
+    it("should reject non-string values", () => {
+      const validator = v.picklist(["active", "inactive"]);
+      expect(() => valibot.parse(validator._schema, 123)).toThrow();
+      expect(() => valibot.parse(validator._schema, true)).toThrow();
+      expect(() => valibot.parse(validator._schema, null)).toThrow();
+    });
+
+    it("should work with status values", () => {
+      const validator = v.picklist(["pending", "approved", "rejected"]);
+      expect(valibot.parse(validator._schema, "pending")).toBe("pending");
+      expect(valibot.parse(validator._schema, "approved")).toBe("approved");
+      expect(valibot.parse(validator._schema, "rejected")).toBe("rejected");
+    });
+  });
+
   describe("v.literal()", () => {
     it("should create a literal validator", () => {
       const validator = v.literal("admin");

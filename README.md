@@ -4,6 +4,8 @@
 [![JSR Score](https://jsr.io/badges/@smartbill/firestore-convex-style/score)](https://jsr.io/@smartbill/firestore-convex-style)
 
 A TypeScript library that brings Convex's elegant schema definition and type-safe querying API to Firestore.
+> ⚠️ **ALPHA WARNING:**  
+> This project is currently in **ALPHA**. Expect **breaking changes** on non-major version updates. APIs and behaviors may change as the library evolves. Use with caution in production environments.
 
 ## Features
 
