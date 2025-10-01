@@ -1,21 +1,6 @@
 {
   "name": "@smartbill/firestore-convex-style",
-  "version": "0.1.0",
   "description": "A Convex-style SDK for Firestore with type-safe schemas and queries",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.js"
-    }
-  },
-  "files": [
-    "dist",
-    "src",
-    "README.md"
-  ],
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
