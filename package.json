@@ -25,7 +25,7 @@
     "emulator:start": "firebase emulators:start --only firestore",
     "emulator:exec": "firebase emulators:exec --only firestore",
     "prepublishOnly": "pnpm run build && pnpm run build:cli && pnpm test",
-    "publish:jsr": "pnpm dlx jsr publish"
+    "publish:jsr": "pnpm dlx jsr publish --allow-slow-types"
   },
   "keywords": [
     "firestore",
