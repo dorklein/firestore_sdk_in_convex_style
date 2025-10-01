@@ -1,12 +1,13 @@
 {
   "$schema": "https://jsr.io/schema/config-file.v1.json",
   "name": "@smartbill/firestore-convex-style",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "license": "MIT",
   "exports": {
     ".": "./mod.ts",
     "./server": "./server/mod.ts",
-    "./values": "./values/mod.ts"
+    "./values": "./values/mod.ts",
+    "./bin/dev": "./bin/dev-js.js"
   },
   "publish": {
     "include": [
