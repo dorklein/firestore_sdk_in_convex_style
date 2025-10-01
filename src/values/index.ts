@@ -29,4 +29,3 @@ export type {
   VOptional,
 } from "./validators.js";
 export type { Infer } from "./validator.js";
-export { compareValues } from "./compare.js";
