@@ -193,9 +193,9 @@ async function main() {
   // Find schema file
   const possibleSchemaPaths = [
     path.join(process.cwd(), "examples", "schema.ts"),
-    path.join(process.cwd(), "src", "schema.ts"),
-    path.join(process.cwd(), "schema.ts"),
-    path.join(process.cwd(), "convex", "schema.ts"),
+    // path.join(process.cwd(), "src", "schema.ts"),
+    // path.join(process.cwd(), "schema.ts"),
+    // path.join(process.cwd(), "convex", "schema.ts"),
   ];
 
   // Allow specifying custom schema path

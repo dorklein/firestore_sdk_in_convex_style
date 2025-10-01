@@ -50,11 +50,7 @@ export class QueryBuilder<TableInfo extends GenericTableInfo> {
   private _orderBy: Array<{ field: string; direction: "asc" | "desc" }> = [];
   private _limitCount?: number;
 
-  constructor(
-    private db: Firestore,
-    private collectionPath: string,
-    private _schemaDefinition: SchemaDefinition<any, any>
-  ) {}
+  constructor(private db: Firestore, private collectionPath: string) {}
 
   where<K extends TableInfo["fieldPaths"]>(
     field: K,

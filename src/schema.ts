@@ -1,4 +1,4 @@
-import { AnyDataModel, GenericDataModel, TableNamesInDataModel } from "./data_model.js";
+import { AnyDataModel, GenericDataModel } from "./data_model.js";
 import { IdField, SystemFields } from "./system_fields.js";
 import { Expand } from "./type_utils.js";
 import { GenericValidator, ObjectType, Validator, VObject, v } from "./values/index.js";

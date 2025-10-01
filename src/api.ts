@@ -1,4 +1,4 @@
-import { DefaultFunctionArgs, EmptyObject, FunctionVisibility } from "./registration";
+import { DefaultFunctionArgs, EmptyObject, FunctionVisibility } from "./registration.js";
 
 /**
  * The type of a Convex function.

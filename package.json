@@ -11,8 +11,8 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "codegen": "tsx src/cli/dev.ts",
-    "codegen:watch": "tsx src/cli/dev.ts --watch",
+    "codegen": "bun run ./src/cli/dev.ts",
+    "codegen:watch": "bun run ./src/cli/dev.ts --watch",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
