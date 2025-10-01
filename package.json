@@ -1,7 +1,18 @@
 {
   "name": "@smartbill/firestore-convex-style",
+  "version": "0.1.0",
   "description": "A Convex-style SDK for Firestore with type-safe schemas and queries",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "bin": {
+    "firestore-convex": "./dist/cli/dev.js"
+  },
   "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "codegen": "tsx src/cli/dev.ts",
+    "codegen:watch": "tsx src/cli/dev.ts --watch",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
@@ -45,7 +56,9 @@
     "vitest": "^1.3.0",
     "@vitest/coverage-v8": "^1.3.0",
     "@firebase/rules-unit-testing": "^3.0.0",
-    "firebase-tools": "^13.0.0"
+    "firebase-tools": "^13.0.0",
+    "ts-node": "^10.9.0",
+    "tsx": "^4.7.0"
   },
   "peerDependencies": {
     "firebase-admin": "^11.0.0 || ^12.0.0"

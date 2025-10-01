@@ -1,4 +1,4 @@
-import { defineSchema, defineTable, v, type ExtractDataModel } from "../src";
+import { defineSchema, defineTable, v } from "../src";
 
 // Define your database schema
 export const schema = defineSchema({
@@ -8,9 +8,7 @@ export const schema = defineSchema({
     role: v.union(v.literal("admin"), v.literal("user")),
     age: v.optional(v.number()),
     createdAt: v.number(),
-  })
-    .index("by_email", ["email"])
-    .index("by_role", ["role"]),
+  }),
 
   customers: defineTable({
     userId: v.id("users"), // Reference to users table
@@ -27,9 +25,7 @@ export const schema = defineSchema({
         notes: v.optional(v.string()),
       })
     ),
-  })
-    .index("by_user", ["userId"])
-    .index("by_user_and_name", ["userId", "name"]),
+  }),
 
   invoices: defineTable({
     customerId: v.id("customers"),
@@ -51,13 +47,8 @@ export const schema = defineSchema({
         price: v.number(),
       })
     ),
-  })
-    .index("by_customer", ["customerId"])
-    .index("by_user", ["userId"])
-    .index("by_status", ["status"])
-    .index("by_due_date", ["dueDate"]),
+  }),
 });
 
 // Extract TypeScript types from schema
-export type DataModel = ExtractDataModel<typeof schema>;
-
+// export type DataModel = ExtractDataModel<typeof schema>;
