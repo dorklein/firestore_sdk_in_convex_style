@@ -79,7 +79,7 @@ export class FunctionRunner<DataModel extends GenericDataModel> {
     const firestore = this.db.getFirestore();
     return await firestore.runTransaction(async (transaction) => {
       // Create a transactional database wrapper
-      const txDb = new TransactionalDatabaseImpl(firestore, this.schemaDefinition, transaction);
+      const txDb = new TransactionalDatabaseImpl(firestore, transaction);
 
       // Create mutation context
       const ctx: GenericMutationCtx<DataModel> = {

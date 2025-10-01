@@ -20,6 +20,7 @@ const tsxArgs = existsSync(localTsxPath) ? [devScriptPath, ...process.argv.slice
 // Try to run the script directly with node if tsx is not available
 if (!existsSync(localTsxPath)) {
   console.log('Note: tsx not found locally. Installing tsx globally or using npx...');
+  console.log('You can install it with: npm install -g tsx');
 }
 
 // Spawn the TypeScript file using tsx

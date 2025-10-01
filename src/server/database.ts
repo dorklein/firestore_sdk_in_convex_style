@@ -248,7 +248,6 @@ export class TransactionalDatabaseImpl<DataModel extends GenericDataModel>
 {
   constructor(
     private db: Firestore,
-    private schemaDefinition: SchemaDefinition<any, any>,
     private transaction: Transaction
   ) {}
 

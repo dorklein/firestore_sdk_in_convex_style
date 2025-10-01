@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 
-import * as path from "path";
-import * as fs from "fs";
-import { serverCodegen } from "./codegen_templates/server.ts";
-import { dynamicDataModelDTS } from "./codegen_templates/dataModel.ts";
-import prettier from "prettier";
+import { dirname, join } from "node:path";
+import { existsSync, mkdirSync, writeFileSync, watch } from "node:fs";
+import { serverCodegen } from "./codegen_templates/server.js";
+import { dynamicDataModelDTS } from "./codegen_templates/dataModel.js";
+import { format } from "prettier";
 
 interface CodegenOptions {
   schemaPath: string;
@@ -12,61 +12,50 @@ interface CodegenOptions {
 }
 
 async function generateTypes(options: CodegenOptions): Promise<void> {
-  const { schemaPath, outputDir } = options;
+  const { outputDir } = options;
 
   // Create _generated directory if it doesn't exist
-  const generatedDir = path.join(outputDir, "_generated");
-  if (!fs.existsSync(generatedDir)) {
-    fs.mkdirSync(generatedDir, { recursive: true });
+  const generatedDir = join(outputDir, "_generated");
+  if (!existsSync(generatedDir)) {
+    mkdirSync(generatedDir, { recursive: true });
   }
 
-  // Generate schema.ts (re-export the schema for code generation)
-  // const schemaContent = generateSchemaFile(schemaPath, outputDir);
-  // fs.writeFileSync(path.join(generatedDir, "schema.ts"), schemaContent);
-
   // Generate dataModel.ts
-  // const dataModelContent = generateDataModelFile(outputDir);
   const dataModelContent = dynamicDataModelDTS();
-  const prettierDataModelContent = await prettier.format(dataModelContent, {
+  const prettierDataModelContent = await format(dataModelContent, {
     parser: "typescript",
   });
-  fs.writeFileSync(path.join(generatedDir, "dataModel.ts"), prettierDataModelContent);
+  writeFileSync(join(generatedDir, "dataModel.ts"), prettierDataModelContent);
 
-  // Generate server.ts (contains query/mutation builders)
+  // Generate server.d.ts and server.js
   const { DTS: serverDTS, JS: serverJS } = serverCodegen();
-  // const serverContent = generateServerFile(outputDir);
-  const prettierServerDTS = await prettier.format(serverDTS, {
+  const prettierServerDTS = await format(serverDTS, {
     parser: "typescript",
   });
-  const prettierServerJS = await prettier.format(serverJS, {
+  const prettierServerJS = await format(serverJS, {
     parser: "typescript",
   });
-  fs.writeFileSync(path.join(generatedDir, "server.d.ts"), prettierServerDTS);
-  fs.writeFileSync(path.join(generatedDir, "server.js"), prettierServerJS);
+  writeFileSync(join(generatedDir, "server.d.ts"), prettierServerDTS);
+  writeFileSync(join(generatedDir, "server.js"), prettierServerJS);
 
   console.log(`✅ Generated types in ${generatedDir}`);
 }
 
-const defaultRootDirectory = path.join(process.cwd(), "examples");
+const defaultRootDirectory = join(process.cwd(), "examples");
 async function main() {
   const args = process.argv.slice(2);
   const watchMode = args.includes("--watch") || args.includes("-w");
 
   // Find schema file
-  const possibleSchemaPaths = [
-    path.join(defaultRootDirectory, "schema.ts"),
-    // path.join(process.cwd(), "src", "schema.ts"),
-    // path.join(process.cwd(), "schema.ts"),
-    // path.join(process.cwd(), "convex", "schema.ts"),
-  ];
+  const possibleSchemaPaths = [join(defaultRootDirectory, "schema.ts")];
 
   // Allow specifying custom schema path
   const schemaArgIndex = args.indexOf("--schema");
   if (schemaArgIndex !== -1 && args[schemaArgIndex + 1]) {
-    possibleSchemaPaths.unshift(path.join(process.cwd(), args[schemaArgIndex + 1]));
+    possibleSchemaPaths.unshift(join(process.cwd(), args[schemaArgIndex + 1]));
   }
 
-  const schemaPath = possibleSchemaPaths.find((p) => fs.existsSync(p));
+  const schemaPath = possibleSchemaPaths.find((p) => existsSync(p));
 
   if (!schemaPath) {
     console.error("❌ Could not find schema.ts file.");
@@ -78,7 +67,7 @@ async function main() {
 
   console.log(`📄 Found schema at ${schemaPath}`);
 
-  const outputDir = path.dirname(schemaPath);
+  const outputDir = dirname(schemaPath);
 
   try {
     if (watchMode) {
@@ -88,7 +77,7 @@ async function main() {
       await generateTypes({ schemaPath, outputDir });
 
       // Watch for file changes
-      fs.watch(schemaPath, async (eventType) => {
+      watch(schemaPath, async (eventType) => {
         if (eventType === "change") {
           console.log(`\n🔄 Schema changed, regenerating types...`);
           try {

@@ -46,8 +46,8 @@ importers:
   examples:
     dependencies:
       '@smartbill/firestore-convex-style':
-        specifier: jsr:^0.1.6
-        version: '@jsr/smartbill__firestore-convex-style@0.1.6(encoding@0.1.13)'
+        specifier: jsr:^0.1.7
+        version: '@jsr/smartbill__firestore-convex-style@0.1.7(encoding@0.1.13)'
 
 packages:
 
@@ -769,8 +769,8 @@ packages:
   '@jsdevtools/ono@7.1.3':
     resolution: {integrity: sha512-4JQNk+3mVzK3xh2rqd6RB4J46qUR19azEHBneZyTZM+c456qOrbbM/5xcR8huNCCcbVt7+UmizG6GuUvPvKUYg==}
 
-  '@jsr/smartbill__firestore-convex-style@0.1.6':
-    resolution: {integrity: sha512-dU/glKc96MDYVeIKxt9x5oVa4FU0Z9hI8I0WcXCbPOvGo/ywuM0RLNCgXPs++ndGl9QqW6QRP2Q5MS/6QlXoug==, tarball: https://npm.jsr.io/~/11/@jsr/smartbill__firestore-convex-style/0.1.6.tgz}
+  '@jsr/smartbill__firestore-convex-style@0.1.7':
+    resolution: {integrity: sha512-iF3KrNinjmi5RPQsJ7V2EB2/c8Bg3FcwWyQHZuzFfkKVv3dilEBe4cNE+qi3pV+2MFgjLMmeo4piogW/6bH4Yw==, tarball: https://npm.jsr.io/~/11/@jsr/smartbill__firestore-convex-style/0.1.7.tgz}
 
   '@npmcli/agent@3.0.0':
     resolution: {integrity: sha512-S79NdEgDQd/NGCay6TCoVzXSj74skRZIKJcpJjC5lOq34SZzyI6MqtiiWoiVWoVrTcGjNeC4ipbh1VIHlpfF5Q==}
@@ -4434,7 +4434,7 @@ snapshots:
 
   '@jsdevtools/ono@7.1.3': {}
 
-  '@jsr/smartbill__firestore-convex-style@0.1.6(encoding@0.1.13)':
+  '@jsr/smartbill__firestore-convex-style@0.1.7(encoding@0.1.13)':
     dependencies:
       firebase-admin: 12.7.0(encoding@0.1.13)
     transitivePeerDependencies:
