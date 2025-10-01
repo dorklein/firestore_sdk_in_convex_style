@@ -1,4 +1,4 @@
-import { header } from "./common.js";
+import { header } from "./common.ts";
 
 export function noSchemaDataModelDTS() {
   return `

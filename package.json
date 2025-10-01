@@ -10,9 +10,11 @@
   },
   "scripts": {
     "build": "tsc",
+    "build:cli": "node esbuild.config.js",
+    "build:cli:watch": "node esbuild.config.js --watch",
     "dev": "tsc --watch",
-    "codegen": "bun run ./src/cli/dev.ts",
-    "codegen:watch": "bun run ./src/cli/dev.ts --watch",
+    "codegen": "node dist/cli/dev.js",
+    "codegen:watch": "node dist/cli/dev.js --watch",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
@@ -22,7 +24,7 @@
     "test:e2e:run": "./scripts/run-e2e-tests.sh",
     "emulator:start": "firebase emulators:start --only firestore",
     "emulator:exec": "firebase emulators:exec --only firestore",
-    "prepublishOnly": "pnpm run build && pnpm test",
+    "prepublishOnly": "pnpm run build && pnpm run build:cli && pnpm test",
     "publish:jsr": "pnpm dlx jsr publish"
   },
   "keywords": [
@@ -54,6 +56,7 @@
     "@firebase/rules-unit-testing": "^3.0.0",
     "@types/node": "^20.0.0",
     "@vitest/coverage-v8": "^1.3.0",
+    "esbuild": "^0.25.10",
     "firebase-tools": "^13.0.0",
     "prettier": "^3.6.2",
     "ts-node": "^10.9.0",

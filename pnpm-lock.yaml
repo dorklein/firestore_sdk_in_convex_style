@@ -24,6 +24,9 @@ importers:
       '@vitest/coverage-v8':
         specifier: ^1.3.0
         version: 1.6.1(vitest@1.6.1(@types/node@20.19.18))
+      esbuild:
+        specifier: ^0.25.10
+        version: 0.25.10
       firebase-tools:
         specifier: ^13.0.0
         version: 13.35.1(@types/node@20.19.18)(encoding@0.1.13)
@@ -33,21 +36,16 @@ importers:
       ts-node:
         specifier: ^10.9.0
         version: 10.9.2(@types/node@20.19.18)(typescript@5.9.2)
-      tsx:
-        specifier: ^4.7.0
-        version: 4.20.6
       typescript:
         specifier: ^5.3.0
         version: 5.9.2
       vitest:
         specifier: ^1.3.0
         version: 1.6.1(@types/node@20.19.18)
-
-  examples:
-    dependencies:
-      '@smartbill/firestore-convex-style':
-        specifier: jsr:^0.1.7
-        version: '@jsr/smartbill__firestore-convex-style@0.1.7(encoding@0.1.13)'
+    optionalDependencies:
+      tsx:
+        specifier: ^4.7.0
+        version: 4.20.6
 
 packages:
 
@@ -768,9 +766,6 @@ packages:
 
   '@jsdevtools/ono@7.1.3':
     resolution: {integrity: sha512-4JQNk+3mVzK3xh2rqd6RB4J46qUR19azEHBneZyTZM+c456qOrbbM/5xcR8huNCCcbVt7+UmizG6GuUvPvKUYg==}
-
-  '@jsr/smartbill__firestore-convex-style@0.1.7':
-    resolution: {integrity: sha512-iF3KrNinjmi5RPQsJ7V2EB2/c8Bg3FcwWyQHZuzFfkKVv3dilEBe4cNE+qi3pV+2MFgjLMmeo4piogW/6bH4Yw==, tarball: https://npm.jsr.io/~/11/@jsr/smartbill__firestore-convex-style/0.1.7.tgz}
 
   '@npmcli/agent@3.0.0':
     resolution: {integrity: sha512-S79NdEgDQd/NGCay6TCoVzXSj74skRZIKJcpJjC5lOq34SZzyI6MqtiiWoiVWoVrTcGjNeC4ipbh1VIHlpfF5Q==}
@@ -4434,13 +4429,6 @@ snapshots:
 
   '@jsdevtools/ono@7.1.3': {}
 
-  '@jsr/smartbill__firestore-convex-style@0.1.7(encoding@0.1.13)':
-    dependencies:
-      firebase-admin: 12.7.0(encoding@0.1.13)
-    transitivePeerDependencies:
-      - encoding
-      - supports-color
-
   '@npmcli/agent@3.0.0':
     dependencies:
       agent-base: 7.1.4
@@ -5812,6 +5800,7 @@ snapshots:
   get-tsconfig@4.10.1:
     dependencies:
       resolve-pkg-maps: 1.0.0
+    optional: true
 
   get-uri@6.0.5:
     dependencies:
@@ -6966,7 +6955,8 @@ snapshots:
 
   require-from-string@2.0.2: {}
 
-  resolve-pkg-maps@1.0.0: {}
+  resolve-pkg-maps@1.0.0:
+    optional: true
 
   restore-cursor@3.1.0:
     dependencies:
@@ -7394,6 +7384,7 @@ snapshots:
       get-tsconfig: 4.10.1
     optionalDependencies:
       fsevents: 2.3.3
+    optional: true
 
   type-detect@4.1.0: {}
 

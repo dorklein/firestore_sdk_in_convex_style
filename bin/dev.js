@@ -8,32 +8,32 @@ import { existsSync } from 'fs';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Get the path to the dev.ts file
-const devScriptPath = join(__dirname, '..', 'src', 'cli', 'dev.ts');
+// Get the path to the built CLI
+const builtCLIPath = join(__dirname, '..', 'dist', 'cli', 'dev.js');
 
-// Check if tsx is available locally first, then fall back to npx
-const localTsxPath = join(__dirname, '..', 'node_modules', '.bin', 'tsx');
-const tsxCommand = existsSync(localTsxPath) ? localTsxPath : 'npx';
-const tsxArgs = existsSync(localTsxPath) ? [devScriptPath, ...process.argv.slice(2)] : ['tsx', devScriptPath, ...process.argv.slice(2)];
-
-// For JSR packages, we need to handle the case where tsx might not be available
-// Try to run the script directly with node if tsx is not available
-if (!existsSync(localTsxPath)) {
-  console.log('Note: tsx not found locally. Installing tsx globally or using npx...');
-  console.log('You can install it with: npm install -g tsx');
+// Check if the built CLI exists, if not, try to build it
+if (!existsSync(builtCLIPath)) {
+  console.log('🔨 Built CLI not found. Building CLI...');
+  
+  const { execSync } = await import('child_process');
+  try {
+    execSync('pnpm run build:cli', { stdio: 'inherit', cwd: join(__dirname, '..') });
+    console.log('✅ CLI built successfully!');
+  } catch (error) {
+    console.error('❌ Failed to build CLI:', error.message);
+    console.error('Please run: pnpm run build:cli');
+    process.exit(1);
+  }
 }
 
-// Spawn the TypeScript file using tsx
-const child = spawn(tsxCommand, tsxArgs, {
+// Spawn the built CLI
+const child = spawn('node', [builtCLIPath, ...process.argv.slice(2)], {
   stdio: 'inherit',
-  cwd: process.cwd(),
-  shell: true // Use shell to handle npx properly
+  cwd: process.cwd()
 });
 
 child.on('error', (error) => {
-  console.error('Error running dev command:', error);
-  console.error('Make sure tsx is installed. You can install it with: npm install -g tsx');
-  console.error('Or try running: npx tsx', devScriptPath, ...process.argv.slice(2));
+  console.error('Error running CLI:', error);
   process.exit(1);
 });
 
