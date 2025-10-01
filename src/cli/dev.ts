@@ -41,7 +41,7 @@ async function generateTypes(options: CodegenOptions): Promise<void> {
   console.log(`✅ Generated types in ${generatedDir}`);
 }
 
-const defaultRootDirectory = join(process.cwd(), "examples");
+const defaultRootDirectory = join(process.cwd(), "firestore");
 async function main() {
   const args = process.argv.slice(2);
   const watchMode = args.includes("--watch") || args.includes("-w");

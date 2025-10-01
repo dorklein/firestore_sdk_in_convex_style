@@ -1,6 +1,6 @@
-import { v } from "../src/index.js";
+import { v } from "@smartbill/firestore-convex-style/values";
 import type { DataModel } from "./_generated/dataModel.js";
-import { internalQuery, internalMutation } from "./_generated/server.js";
+import { internalMutation, internalQuery } from "./_generated/server.js";
 
 const CUSTOMER_NOT_FOUND_ERROR = "Customer not found";
 const USER_NOT_FOUND_ERROR = "User not found";

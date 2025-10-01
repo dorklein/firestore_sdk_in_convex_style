@@ -1,4 +1,4 @@
-import { defineSchema, defineTable, v } from "../src";
+import { defineSchema, defineTable, v } from "@smartbill/firestore-convex-style";
 
 // Define your database schema
 export const schema = defineSchema({
