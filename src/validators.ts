@@ -81,6 +81,18 @@ export function object<T extends Record<string, Validator>>(
   };
 }
 
+// Record validator for dynamic key-value pairs
+export function record<K extends string | number, V>(
+  keyValidator: Validator<K>,
+  valueValidator: Validator<V>
+): Validator<Record<K, V>> {
+  return {
+    _type: undefined as any,
+    _schema: v.record(keyValidator._schema, valueValidator._schema),
+    _isOptional: false,
+  };
+}
+
 // Literal validator
 export function literal<T extends string | number | boolean>(value: T): Validator<T> {
   return {
@@ -117,6 +129,7 @@ export const validators = {
   optional,
   array,
   object,
+  record,
   literal,
   union,
   any,

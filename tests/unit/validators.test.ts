@@ -144,6 +144,88 @@ describe("Validators", () => {
     });
   });
 
+  describe("v.record()", () => {
+    it("should create a record validator with string keys and string values", () => {
+      const validator = v.record(v.string(), v.string());
+      const result = valibot.parse(validator._schema, {
+        key1: "value1",
+        key2: "value2",
+      });
+      expect(result).toEqual({ key1: "value1", key2: "value2" });
+    });
+
+    it("should create a record validator with string keys and number values", () => {
+      const validator = v.record(v.string(), v.number());
+      const result = valibot.parse(validator._schema, {
+        age: 30,
+        count: 100,
+      });
+      expect(result).toEqual({ age: 30, count: 100 });
+    });
+
+    it("should create a record validator with string keys and object values", () => {
+      const validator = v.record(
+        v.string(),
+        v.object({
+          name: v.string(),
+          age: v.number(),
+        })
+      );
+      const result = valibot.parse(validator._schema, {
+        user1: { name: "John", age: 30 },
+        user2: { name: "Jane", age: 25 },
+      });
+      expect(result).toEqual({
+        user1: { name: "John", age: 30 },
+        user2: { name: "Jane", age: 25 },
+      });
+    });
+
+    it("should accept an empty record", () => {
+      const validator = v.record(v.string(), v.number());
+      const result = valibot.parse(validator._schema, {});
+      expect(result).toEqual({});
+    });
+
+    it("should reject non-object values", () => {
+      const validator = v.record(v.string(), v.string());
+      expect(() => valibot.parse(validator._schema, "not an object")).toThrow();
+      expect(() => valibot.parse(validator._schema, 123)).toThrow();
+      expect(() => valibot.parse(validator._schema, null)).toThrow();
+    });
+
+    it("should reject records with invalid value types", () => {
+      const validator = v.record(v.string(), v.number());
+      expect(() =>
+        valibot.parse(validator._schema, {
+          key1: 123,
+          key2: "invalid", // should be number
+        })
+      ).toThrow();
+    });
+
+    it("should work with nested records", () => {
+      const validator = v.record(v.string(), v.record(v.string(), v.number()));
+      const result = valibot.parse(validator._schema, {
+        category1: { item1: 10, item2: 20 },
+        category2: { item3: 30 },
+      });
+      expect(result).toEqual({
+        category1: { item1: 10, item2: 20 },
+        category2: { item3: 30 },
+      });
+    });
+
+    it("should work with optional values", () => {
+      const validator = v.record(v.string(), v.optional(v.number()));
+      const result = valibot.parse(validator._schema, {
+        key1: 123,
+        key2: undefined,
+      });
+      expect(result).toEqual({ key1: 123, key2: undefined });
+    });
+  });
+
   describe("v.any()", () => {
     it("should accept any value", () => {
       const validator = v.any();
