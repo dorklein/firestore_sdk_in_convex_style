@@ -41,8 +41,8 @@ export function asObjectValidator<V extends Validator<any, any, any> | PropertyV
 ): V extends Validator<any, any, any>
   ? V
   : V extends PropertyValidators
-  ? Validator<ObjectType<V>>
-  : never {
+    ? Validator<ObjectType<V>>
+    : never {
   if (isValidator(obj)) {
     return obj as any;
   } else {
@@ -60,8 +60,8 @@ export type AsObjectValidator<V extends Validator<any, any, any> | PropertyValid
   V extends Validator<any, any, any>
     ? V
     : V extends PropertyValidators
-    ? Validator<ObjectType<V>>
-    : never;
+      ? Validator<ObjectType<V>>
+      : never;
 
 /**
  * The validator builder.
@@ -78,7 +78,7 @@ export const v = {
    * Validates that the value corresponds to an ID of a document in given table.
    * @param tableName The name of the table.
    */
-  id: <TableName extends string>(tableName: TableName) => {
+  id: <TableName extends string>(tableName: TableName): VId<GenericId<TableName>> => {
     return new VId<GenericId<TableName>>({
       isOptional: "required",
       tableName,
@@ -88,7 +88,7 @@ export const v = {
   /**
    * Validates that the value is of type Null.
    */
-  null: () => {
+  null: (): VNull => {
     return new VNull({ isOptional: "required" });
   },
 
@@ -97,49 +97,49 @@ export const v = {
    *
    * Alias for `v.float64()`
    */
-  number: () => {
+  number: (): VFloat64 => {
     return new VFloat64({ isOptional: "required" });
   },
 
   /**
    * Validates that the value is of Convex type Float64 (Number in JS).
    */
-  float64: () => {
+  float64: (): VFloat64 => {
     return new VFloat64({ isOptional: "required" });
   },
 
   /**
    * @deprecated Use `v.int64()` instead
    */
-  bigint: () => {
+  bigint: (): VInt64 => {
     return new VInt64({ isOptional: "required" });
   },
 
   /**
    * Validates that the value is of Convex type Int64 (BigInt in JS).
    */
-  int64: () => {
+  int64: (): VInt64 => {
     return new VInt64({ isOptional: "required" });
   },
 
   /**
    * Validates that the value is of type Boolean.
    */
-  boolean: () => {
+  boolean: (): VBoolean => {
     return new VBoolean({ isOptional: "required" });
   },
 
   /**
    * Validates that the value is of type String.
    */
-  string: () => {
+  string: (): VString => {
     return new VString({ isOptional: "required" });
   },
 
   /**
    * Validates that the value is of Convex type Bytes (constructed in JS via `ArrayBuffer`).
    */
-  bytes: () => {
+  bytes: (): VBytes => {
     return new VBytes({ isOptional: "required" });
   },
 
@@ -147,7 +147,7 @@ export const v = {
    * Validates that the value is equal to the given literal value.
    * @param literal The literal value to compare against.
    */
-  literal: <T extends string | number | bigint | boolean>(literal: T) => {
+  literal: <T extends string | number | bigint | boolean>(literal: T): VLiteral<T> => {
     return new VLiteral<T>({ isOptional: "required", value: literal });
   },
 
@@ -155,7 +155,7 @@ export const v = {
    * Validates that the value is an Array of the given element type.
    * @param element The validator for the elements of the array.
    */
-  array: <T extends Validator<any, "required", any>>(element: T) => {
+  array: <T extends Validator<any, "required", any>>(element: T): VArray<T["type"][], T> => {
     return new VArray<T["type"][], T>({ isOptional: "required", element });
   },
 
@@ -163,7 +163,7 @@ export const v = {
    * Validates that the value is an Object with the given properties.
    * @param fields An object specifying the validator for each property.
    */
-  object: <T extends PropertyValidators>(fields: T) => {
+  object: <T extends PropertyValidators>(fields: T): VObject<ObjectType<T>, T> => {
     return new VObject<ObjectType<T>, T>({ isOptional: "required", fields });
   },
 
@@ -174,11 +174,11 @@ export const v = {
    */
   record: <
     Key extends Validator<string, "required", any>,
-    Value extends Validator<any, "required", any>
+    Value extends Validator<any, "required", any>,
   >(
     keys: Key,
     values: Value
-  ) => {
+  ): VRecord<Record<Infer<Key>, Value["type"]>, Key, Value> => {
     return new VRecord<Record<Infer<Key>, Value["type"]>, Key, Value>({
       isOptional: "required",
       key: keys,
@@ -190,7 +190,9 @@ export const v = {
    * Validates that the value matches one of the given validators.
    * @param members The validators to match against.
    */
-  union: <T extends Validator<any, "required", any>[]>(...members: T) => {
+  union: <T extends Validator<any, "required", any>[]>(
+    ...members: T
+  ): VUnion<T[number]["type"], T> => {
     return new VUnion<T[number]["type"], T>({
       isOptional: "required",
       members,
@@ -200,7 +202,7 @@ export const v = {
   /**
    * Does not validate the value.
    */
-  any: () => {
+  any: (): VAny => {
     return new VAny({ isOptional: "required" });
   },
 
@@ -215,7 +217,7 @@ export const v = {
    * });
    * ```
    */
-  optional: <T extends GenericValidator>(value: T) => {
+  optional: <T extends GenericValidator>(value: T): VOptional<T> => {
     return value.asOptional() as VOptional<T>;
   },
 };

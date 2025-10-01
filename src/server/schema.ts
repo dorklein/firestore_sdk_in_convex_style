@@ -1,7 +1,14 @@
 import { AnyDataModel, GenericDataModel } from "./data_model.ts";
 import { IdField, SystemFields } from "./system_fields.ts";
 import { Expand } from "../type_utils.ts";
-import { GenericValidator, ObjectType, Validator, VObject, v } from "../values/index.ts";
+import {
+  GenericValidator,
+  ObjectType,
+  Validator,
+  VObject,
+  v,
+  ValidatorJSON,
+} from "../values/index.ts";
 import { isValidator } from "../values/validator.ts";
 
 /**
@@ -59,7 +66,7 @@ export class TableDefinition<
    * This is called internally by the Convex framework.
    * @internal
    */
-  export() {
+  export(): { documentType: ValidatorJSON } {
     return {
       documentType: this.validator.json,
     };
