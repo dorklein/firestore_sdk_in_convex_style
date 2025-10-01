@@ -6,7 +6,14 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
-import { FunctionRunner, internalMutation, v, defineSchema, defineTable } from "../../src";
+import {
+  FunctionRunner,
+  internalMutation,
+  v,
+  defineSchema,
+  defineTable,
+  DocumentId,
+} from "../../src";
 import {
   initializeFirebaseEmulator,
   clearFirestoreData,
@@ -96,7 +103,7 @@ describe("Transaction Rollback Behavior", () => {
         count: v.number(),
       },
       handler: async (ctx, args) => {
-        const userIds = [];
+        const userIds: DocumentId<"users">[] = [];
 
         // Insert multiple users
         for (let i = 0; i < args.count; i++) {
