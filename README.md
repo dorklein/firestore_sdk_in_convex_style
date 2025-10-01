@@ -1,5 +1,8 @@
 # Firestore Convex Style SDK
 
+[![JSR](https://jsr.io/badges/@smartbill/firestore-convex-style)](https://jsr.io/@smartbill/firestore-convex-style)
+[![JSR Score](https://jsr.io/badges/@smartbill/firestore-convex-style/score)](https://jsr.io/@smartbill/firestore-convex-style)
+
 A TypeScript library that brings Convex's elegant schema definition and type-safe querying API to Firestore.
 
 ## Features
@@ -12,8 +15,42 @@ A TypeScript library that brings Convex's elegant schema definition and type-saf
 
 ## Installation
 
+Install from JSR (JavaScript Registry):
+
 ```bash
-pnpm add firestore-convex-style valibot firebase-admin
+# npm
+npx jsr add @smartbill/firestore-convex-style
+
+# pnpm
+pnpm dlx jsr add @smartbill/firestore-convex-style
+
+# yarn
+yarn dlx jsr add @smartbill/firestore-convex-style
+
+# deno
+deno add @smartbill/firestore-convex-style
+
+# bun
+bunx jsr add @smartbill/firestore-convex-style
+```
+
+You'll also need to install the peer dependencies:
+
+```bash
+# npm
+npm install valibot firebase-admin
+
+# pnpm
+pnpm add valibot firebase-admin
+
+# yarn
+yarn add valibot firebase-admin
+
+# deno
+deno add npm:valibot npm:firebase-admin
+
+# bun
+bun add valibot firebase-admin
 ```
 
 ## Quick Start
@@ -21,7 +58,7 @@ pnpm add firestore-convex-style valibot firebase-admin
 ### 1. Define Your Schema
 
 ```typescript
-import { defineSchema, defineTable, v } from 'firestore-convex-style';
+import { defineSchema, defineTable, v } from '@smartbill/firestore-convex-style';
 
 export const schema = defineSchema({
   users: defineTable({
@@ -49,7 +86,7 @@ export type DataModel = ExtractDataModel<typeof schema>;
 ### 2. Create Queries and Mutations
 
 ```typescript
-import { internalQuery, internalMutation, v } from 'firestore-convex-style';
+import { internalQuery, internalMutation, v } from '@smartbill/firestore-convex-style';
 
 // Type-safe query
 export const getCustomerById = internalQuery({
@@ -96,7 +133,7 @@ export const getCustomersByUser = internalQuery({
 
 ```typescript
 import admin from 'firebase-admin';
-import { FunctionRunner } from 'firestore-convex-style';
+import { FunctionRunner } from '@smartbill/firestore-convex-style';
 import { schema } from './schema';
 import { getCustomerById, createCustomer } from './functions';
 

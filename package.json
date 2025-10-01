@@ -1,9 +1,21 @@
 {
-  "name": "firestore-convex-style",
+  "name": "@smartbill/firestore-convex-style",
   "version": "0.1.0",
   "description": "A Convex-style SDK for Firestore with type-safe schemas and queries",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src",
+    "README.md"
+  ],
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
@@ -15,17 +27,31 @@
     "test:e2e": "vitest run --config vitest.e2e.config.ts",
     "test:e2e:run": "./scripts/run-e2e-tests.sh",
     "emulator:start": "firebase emulators:start --only firestore",
-    "emulator:exec": "firebase emulators:exec --only firestore"
+    "emulator:exec": "firebase emulators:exec --only firestore",
+    "prepublishOnly": "pnpm run build && pnpm test",
+    "publish:jsr": "pnpm dlx jsr publish"
   },
   "keywords": [
     "firestore",
     "convex",
     "typescript",
     "schema",
-    "validation"
+    "validation",
+    "type-safe",
+    "firebase",
+    "database",
+    "orm"
   ],
-  "author": "",
+  "author": "SmartBill",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/smartbill/firestore-convex-style.git"
+  },
+  "bugs": {
+    "url": "https://github.com/smartbill/firestore-convex-style/issues"
+  },
+  "homepage": "https://github.com/smartbill/firestore-convex-style#readme",
   "dependencies": {
     "valibot": "^0.42.0",
     "firebase-admin": "^12.0.0"
