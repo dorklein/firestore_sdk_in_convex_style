@@ -4,7 +4,7 @@
  */
 
 import * as admin from "firebase-admin";
-import { createFunctionRunner } from "../src/functions.js";
+import { createFunctionRunner } from "../src/server/functions.js";
 import { schema } from "./schema.js";
 import { internalQuery, internalMutation } from "./_generated/server.js";
 import { v } from "../src/index.js";

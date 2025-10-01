@@ -1,4 +1,4 @@
-import { Value } from "./values/index.js";
+import { Value } from "../values/index.ts";
 
 // Document Types  /////////////////////////////////////////////////////////////
 
@@ -95,12 +95,10 @@ type ValueFromUnion<T, Key, Default> = T extends T
  *
  * @public
  */
-export type FieldTypeFromFieldPath<
-  Document extends GenericDocument,
-  FieldPath extends string
-> = FieldTypeFromFieldPathInner<Document, FieldPath> extends Value | undefined
-  ? FieldTypeFromFieldPathInner<Document, FieldPath>
-  : Value | undefined;
+export type FieldTypeFromFieldPath<Document extends GenericDocument, FieldPath extends string> =
+  FieldTypeFromFieldPathInner<Document, FieldPath> extends Value | undefined
+    ? FieldTypeFromFieldPathInner<Document, FieldPath>
+    : Value | undefined;
 
 /**
  * The inner type of {@link FieldTypeFromFieldPath}.
@@ -112,7 +110,7 @@ export type FieldTypeFromFieldPath<
  */
 export type FieldTypeFromFieldPathInner<
   Document extends GenericDocument,
-  FieldPath extends string
+  FieldPath extends string,
 > = FieldPath extends `${infer First}.${infer Second}`
   ? ValueFromUnion<Document, First, Record<never, never>> extends infer FieldValue
     ? // The fact that `extends infer` extracts the generic document out of a union of a
@@ -189,7 +187,7 @@ export type TableNamesInDataModel<DataModel extends GenericDataModel> = keyof Da
  */
 export type NamedTableInfo<
   DataModel extends GenericDataModel,
-  TableName extends keyof DataModel
+  TableName extends keyof DataModel,
 > = DataModel[TableName];
 
 /**
@@ -198,5 +196,5 @@ export type NamedTableInfo<
  */
 export type DocumentByName<
   DataModel extends GenericDataModel,
-  TableName extends TableNamesInDataModel<DataModel>
+  TableName extends TableNamesInDataModel<DataModel>,
 > = DataModel[TableName]["document"];

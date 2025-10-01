@@ -3,16 +3,16 @@ import {
   FunctionReturnType,
   OptionalRestArgs,
   ValidatorTypeToReturnType,
-} from "./api.js";
-import { GenericDataModel } from "./data_model.js";
-import { GenericDatabaseReader, GenericDatabaseWriter } from "./database.js";
+} from "./api.ts";
+import { GenericDataModel } from "./data_model.ts";
+import { GenericDatabaseReader, GenericDatabaseWriter } from "./database.ts";
 import {
   GenericValidator,
   Infer,
   ObjectType,
   PropertyValidators,
   Validator,
-} from "./values/index.js";
+} from "../values/index.ts";
 
 // Re-export PropertyValidators so it's available to importers
 export type { PropertyValidators };
@@ -62,9 +62,8 @@ export type EmptyObject = Record<string, never>;
  * Empty arguments arrays are converted to {@link EmptyObject}.
  * @public
  */
-export type ArgsArrayToObject<Args extends ArgsArray> = Args extends OneArgArray<infer ArgsObject>
-  ? ArgsObject
-  : EmptyObject;
+export type ArgsArrayToObject<Args extends ArgsArray> =
+  Args extends OneArgArray<infer ArgsObject> ? ArgsObject : EmptyObject;
 
 export type FunctionVisibility = "public" | "internal";
 
@@ -193,28 +192,28 @@ export interface GenericMutationCtx<DataModel extends GenericDataModel> {
  */
 
 export type ReturnValueForOptionalValidator<
-  ReturnsValidator extends Validator<any, any, any> | PropertyValidators | void
+  ReturnsValidator extends Validator<any, any, any> | PropertyValidators | void,
 > = [ReturnsValidator] extends [Validator<any, any, any>]
   ? ValidatorTypeToReturnType<Infer<ReturnsValidator>>
   : [ReturnsValidator] extends [PropertyValidators]
-  ? ValidatorTypeToReturnType<ObjectType<ReturnsValidator>>
-  : any;
+    ? ValidatorTypeToReturnType<ObjectType<ReturnsValidator>>
+    : any;
 
 export type ArgsArrayForOptionalValidator<
-  ArgsValidator extends GenericValidator | PropertyValidators | void
+  ArgsValidator extends GenericValidator | PropertyValidators | void,
 > = [ArgsValidator] extends [Validator<any, any, any>]
   ? OneArgArray<Infer<ArgsValidator>>
   : [ArgsValidator] extends [PropertyValidators]
-  ? OneArgArray<ObjectType<ArgsValidator>>
-  : ArgsArray;
+    ? OneArgArray<ObjectType<ArgsValidator>>
+    : ArgsArray;
 
 export type DefaultArgsForOptionalValidator<
-  ArgsValidator extends GenericValidator | PropertyValidators | void
+  ArgsValidator extends GenericValidator | PropertyValidators | void,
 > = [ArgsValidator] extends [Validator<any, any, any>]
   ? [Infer<ArgsValidator>]
   : [ArgsValidator] extends [PropertyValidators]
-  ? [ObjectType<ArgsValidator>]
-  : OneArgArray;
+    ? [ObjectType<ArgsValidator>]
+    : OneArgArray;
 
 /**
  * A query function that is part of this app.
@@ -227,7 +226,7 @@ export type DefaultArgsForOptionalValidator<
 export type RegisteredQuery<
   Visibility extends FunctionVisibility,
   Args extends DefaultFunctionArgs,
-  Returns
+  Returns,
 > = {
   isConvexFunction: true;
   isQuery: true;
@@ -262,7 +261,7 @@ export type RegisteredQuery<
 export type RegisteredMutation<
   Visibility extends FunctionVisibility,
   Args extends DefaultFunctionArgs,
-  Returns
+  Returns,
 > = {
   isConvexFunction: true;
   isMutation: true;
@@ -288,13 +287,15 @@ export type RegisteredMutation<
 
 export type QueryBuilder<
   DataModel extends GenericDataModel,
-  Visibility extends FunctionVisibility
+  Visibility extends FunctionVisibility,
 > = {
   <
     ArgsValidator extends PropertyValidators | Validator<any, "required", any> | void = void,
     ReturnsValidator extends PropertyValidators | Validator<any, "required", any> | void = void,
-    ReturnValue extends ReturnValueForOptionalValidator<ReturnsValidator> = ReturnValueForOptionalValidator<ReturnsValidator>,
-    OneOrZeroArgs extends ArgsArrayForOptionalValidator<ArgsValidator> = DefaultArgsForOptionalValidator<ArgsValidator>
+    ReturnValue extends
+      ReturnValueForOptionalValidator<ReturnsValidator> = ReturnValueForOptionalValidator<ReturnsValidator>,
+    OneOrZeroArgs extends
+      ArgsArrayForOptionalValidator<ArgsValidator> = DefaultArgsForOptionalValidator<ArgsValidator>,
   >(
     query:
       | {
@@ -344,13 +345,15 @@ export type QueryBuilder<
 
 export type MutationBuilder<
   DataModel extends GenericDataModel,
-  Visibility extends FunctionVisibility
+  Visibility extends FunctionVisibility,
 > = {
   <
     ArgsValidator extends PropertyValidators | Validator<any, "required", any> | void = void,
     ReturnsValidator extends PropertyValidators | Validator<any, "required", any> | void = void,
-    ReturnValue extends ReturnValueForOptionalValidator<ReturnsValidator> = ReturnValueForOptionalValidator<ReturnsValidator>,
-    OneOrZeroArgs extends ArgsArrayForOptionalValidator<ArgsValidator> = DefaultArgsForOptionalValidator<ArgsValidator>
+    ReturnValue extends
+      ReturnValueForOptionalValidator<ReturnsValidator> = ReturnValueForOptionalValidator<ReturnsValidator>,
+    OneOrZeroArgs extends
+      ArgsArrayForOptionalValidator<ArgsValidator> = DefaultArgsForOptionalValidator<ArgsValidator>,
   >(
     mutation:
       | {

@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
-import { FunctionRunner } from "../../src/functions";
-import { defineSchema, defineTable } from "../../src/schema";
+import { FunctionRunner } from "../../src/server/functions";
+import { defineSchema, defineTable } from "../../src/server/schema";
 import * as v from "../../src/validators";
-import { internalQuery, internalMutation } from "../../src/functions";
-import type { ExtractDataModel } from "../../src/schema";
+import { internalQuery, internalMutation } from "../../src/server/functions";
+import type { ExtractDataModel } from "../../src/server/schema";
 import type { Firestore } from "firebase-admin/firestore";
 import {
   initializeFirebaseEmulator,

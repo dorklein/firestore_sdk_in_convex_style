@@ -49,6 +49,4 @@ export const schema = defineSchema({
     ),
   }),
 });
-
-// Extract TypeScript types from schema
-// export type DataModel = ExtractDataModel<typeof schema>;
+export default schema;

@@ -1,12 +1,12 @@
 import { Firestore, DocumentSnapshot, Transaction } from "firebase-admin/firestore";
-import type { SchemaDefinition } from "./schema.js";
+import type { SchemaDefinition } from "./schema.ts";
 import {
   GenericDataModel,
   GenericTableInfo,
   NamedTableInfo,
   DocumentByName,
-} from "./data_model.js";
-import { GenericId } from "./values/index.js";
+} from "./data_model.ts";
+import { GenericId } from "../values/index.ts";
 
 export interface DatabaseReader<DataModel extends GenericDataModel> {
   get<TableName extends keyof DataModel & string>(
@@ -50,7 +50,10 @@ export class QueryBuilder<TableInfo extends GenericTableInfo> {
   private _orderBy: Array<{ field: string; direction: "asc" | "desc" }> = [];
   private _limitCount?: number;
 
-  constructor(private db: Firestore, private collectionPath: string) {}
+  constructor(
+    private db: Firestore,
+    private collectionPath: string
+  ) {}
 
   where<K extends TableInfo["fieldPaths"]>(
     field: K,
@@ -111,7 +114,10 @@ export class QueryBuilder<TableInfo extends GenericTableInfo> {
 
 // Database implementation
 export class DatabaseImpl<DataModel extends GenericDataModel> implements DatabaseWriter<DataModel> {
-  constructor(private db: Firestore, private schemaDefinition: SchemaDefinition<any, any>) {}
+  constructor(
+    private db: Firestore,
+    private schemaDefinition: SchemaDefinition<any, any>
+  ) {}
 
   // Expose the Firestore instance for transaction handling
   getFirestore(): Firestore {
@@ -151,7 +157,7 @@ export class DatabaseImpl<DataModel extends GenericDataModel> implements Databas
   query<TableName extends keyof DataModel & string>(
     tableName: TableName
   ): QueryBuilder<NamedTableInfo<DataModel, TableName>> {
-    return new QueryBuilder(this.db, tableName as string, this.schemaDefinition);
+    return new QueryBuilder(this.db, tableName as string);
   }
 
   async insert<TableName extends keyof DataModel & string>(
@@ -274,7 +280,7 @@ export class TransactionalDatabaseImpl<DataModel extends GenericDataModel>
     tableName: TableName
   ): QueryBuilder<NamedTableInfo<DataModel, TableName>> {
     // Note: Queries in transactions are read-only and execute immediately
-    return new QueryBuilder(this.db, tableName as string, this.schemaDefinition);
+    return new QueryBuilder(this.db, tableName as string);
   }
 
   async insert<TableName extends keyof DataModel & string>(

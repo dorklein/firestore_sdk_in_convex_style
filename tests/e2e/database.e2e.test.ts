@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
-import { Database } from "../../src/database";
-import { defineSchema, defineTable } from "../../src/schema";
+import { Database } from "../../src/server/database";
+import { defineSchema, defineTable } from "../../src/server/schema";
 import * as v from "../../src/validators";
 import {
   initializeFirebaseEmulator,

@@ -1,4 +1,10 @@
-import { DefaultFunctionArgs, EmptyObject, FunctionVisibility } from "./registration.js";
+import {
+  DefaultFunctionArgs,
+  EmptyObject,
+  FunctionVisibility,
+  RegisteredQuery,
+  RegisteredMutation,
+} from "./registration.ts";
 
 /**
  * The type of a Convex function.
@@ -12,7 +18,7 @@ export type FunctionReference<
   Visibility extends FunctionVisibility = "public",
   Args extends DefaultFunctionArgs = any,
   ReturnType = any,
-  ComponentPath = string | undefined
+  ComponentPath = string | undefined,
 > = {
   _type: Type;
   _visibility: Visibility;
@@ -63,3 +69,51 @@ export type ConvertReturnType<T> = UndefinedToNull<Awaited<T>>;
 export type ValidatorTypeToReturnType<T> =
   | Promise<NullToUndefinedOrNull<T>>
   | NullToUndefinedOrNull<T>;
+
+/**
+ * Extract the arguments type from a RegisteredQuery or RegisteredMutation.
+ *
+ * @example
+ * ```typescript
+ * const getUserById = internalQuery({
+ *   args: { userId: v.id("users") },
+ *   handler: async (ctx, args) => { ... }
+ * });
+ *
+ * type Args = FunctionArgs<typeof getUserById>;
+ * // Args is { userId: Id<"users"> }
+ * ```
+ *
+ * @public
+ */
+export type FunctionArgs<T> =
+  T extends RegisteredQuery<any, infer Args, any>
+    ? Args
+    : T extends RegisteredMutation<any, infer Args, any>
+      ? Args
+      : never;
+
+/**
+ * Extract the return type from a RegisteredQuery or RegisteredMutation.
+ *
+ * @example
+ * ```typescript
+ * const getUserById = internalQuery({
+ *   args: { userId: v.id("users") },
+ *   handler: async (ctx, args) => {
+ *     return await ctx.db.get(args.userId);
+ *   }
+ * });
+ *
+ * type ReturnType = FunctionReturn<typeof getUserById>;
+ * // ReturnType is Promise<Doc<"users"> | null>
+ * ```
+ *
+ * @public
+ */
+export type FunctionReturn<T> =
+  T extends RegisteredQuery<any, any, infer Returns>
+    ? Returns
+    : T extends RegisteredMutation<any, any, infer Returns>
+      ? Returns
+      : never;

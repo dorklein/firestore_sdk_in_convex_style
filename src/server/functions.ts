@@ -1,14 +1,14 @@
 import { Firestore } from "firebase-admin/firestore";
-import { DatabaseImpl, TransactionalDatabaseImpl } from "./database.js";
-import { SchemaDefinition } from "./schema.js";
-import { GenericDataModel } from "./data_model.js";
+import { DatabaseImpl, TransactionalDatabaseImpl } from "./database.ts";
+import { SchemaDefinition } from "./schema.ts";
+import { GenericDataModel } from "./data_model.ts";
 import {
   GenericQueryCtx,
   GenericMutationCtx,
   RegisteredQuery,
   RegisteredMutation,
-} from "./registration.js";
-import { ObjectType, PropertyValidators } from "./values/index.js";
+} from "./registration.ts";
+import { ObjectType, PropertyValidators } from "../values/index.ts";
 
 /**
  * Runtime executor for Convex-style functions.
@@ -19,7 +19,10 @@ import { ObjectType, PropertyValidators } from "./values/index.js";
 export class FunctionRunner<DataModel extends GenericDataModel> {
   private db: DatabaseImpl<DataModel>;
 
-  constructor(firestore: Firestore, private schemaDefinition: SchemaDefinition<any, any>) {
+  constructor(
+    firestore: Firestore,
+    private schemaDefinition: SchemaDefinition<any, any>
+  ) {
     this.db = new DatabaseImpl(firestore, schemaDefinition);
   }
 

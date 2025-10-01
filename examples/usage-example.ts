@@ -5,9 +5,9 @@
 
 import * as admin from "firebase-admin";
 import { internalQuery, internalMutation } from "./_generated/server.js";
-import type { Id, Doc } from "./_generated/dataModel.js";
+import type { Id, Doc, FunctionArgs, FunctionReturn } from "./_generated/dataModel.js";
 import { v } from "../src/index.js";
-import { DatabaseImpl } from "../src/database.js";
+import { DatabaseImpl } from "../src/server/database.js";
 import { schema } from "./schema.js";
 
 // Initialize Firebase Admin (you'd normally do this once in your app)
@@ -224,15 +224,29 @@ async function demonstrateUsage() {
   // Note: In a real app, you'd have a proper runtime that executes these
   // For now, we're just showing the type safety at compile time
 
-  // Example 1: The functions are strongly typed
-  type UserIdType = Parameters<typeof getUserById>[0]["userId"];
+  // Example 1: Extract argument types from registered queries/mutations
+  type GetUserByIdArgs = FunctionArgs<typeof getUserById>;
+  // GetUserByIdArgs is { userId: Id<"users"> } ✅
+
+  type UserIdType = GetUserByIdArgs["userId"];
   // UserIdType is Id<"users"> ✅
 
-  // Example 2: Return types are inferred
-  type UserType = Awaited<ReturnType<typeof getUserById>>;
-  // UserType is Doc<"users"> | null ✅
+  // Example 2: Extract return types from registered queries/mutations
+  type GetUserByIdReturn = FunctionReturn<typeof getUserById>;
+  // GetUserByIdReturn is Promise<Doc<"users">> (the handler returns a user or throws)
 
-  // Example 3: You can use the Id and Doc types directly
+  // For the actual doc type, use Awaited:
+  type UserType = Awaited<GetUserByIdReturn>;
+  // UserType is Doc<"users"> ✅
+
+  // Example 3: It works for mutations too!
+  type CreateCustomerArgs = FunctionArgs<typeof createCustomer>;
+  // CreateCustomerArgs is { userId: Id<"users">, name: string, email?: string, phone?: string } ✅
+
+  type CreateCustomerReturn = Awaited<FunctionReturn<typeof createCustomer>>;
+  // CreateCustomerReturn is Id<"customers"> ✅
+
+  // Example 4: You can use the Id and Doc types directly
   function processUser(userId: Id<"users">, user: Doc<"users">) {
     console.log(`Processing user ${userId}: ${user.name}`);
     // All fields are available with autocomplete:

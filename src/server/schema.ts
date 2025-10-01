@@ -1,8 +1,8 @@
-import { AnyDataModel, GenericDataModel } from "./data_model.js";
-import { IdField, SystemFields } from "./system_fields.js";
-import { Expand } from "./type_utils.js";
-import { GenericValidator, ObjectType, Validator, VObject, v } from "./values/index.js";
-import { isValidator } from "./values/validator.js";
+import { AnyDataModel, GenericDataModel } from "./data_model.ts";
+import { IdField, SystemFields } from "./system_fields.ts";
+import { Expand } from "../type_utils.ts";
+import { GenericValidator, ObjectType, Validator, VObject, v } from "../values/index.ts";
+import { isValidator } from "../values/validator.ts";
 
 /**
  * Extract all of the index field paths within a {@link Validator}.
@@ -28,17 +28,6 @@ type ExtractDocument<T extends Validator<any, any, any>> =
   //the table name) and trick TypeScript into expanding them.
   Expand<SystemFields & T["type"]>;
 
-// // Extract the TypeScript type from a validator
-// export type Infer<V extends Validator> = V["_type"];
-
-// // Extract the TypeScript type from a table definition
-// export type InferTableType<T extends TableDefinition<any>> = {
-//   [K in keyof T["fields"]]: T["fields"][K]["_type"];
-// } & {
-//   _id: string;
-//   _creationTime: number;
-// };
-
 /**
  * The definition of a table within a schema.
  *
@@ -46,7 +35,7 @@ type ExtractDocument<T extends Validator<any, any, any>> =
  * @public
  */
 export class TableDefinition<
-  DocumentType extends Validator<any, any, any> = Validator<any, any, any>
+  DocumentType extends Validator<any, any, any> = Validator<any, any, any>,
 > {
   // The type of documents stored in this table.
   validator: DocumentType;
@@ -76,30 +65,6 @@ export class TableDefinition<
     };
   }
 }
-
-export interface Index {
-  name: string;
-  fields: string[];
-}
-
-// // Table builder for fluent API
-// export class TableBuilder<Fields extends Record<string, Validator>> {
-//   private _indexes: Index[] = [];
-
-//   constructor(private fields: Fields) {}
-
-//   index(name: string, fields: (keyof Fields)[]): this {
-//     this._indexes.push({ name, fields: fields as string[] });
-//     return this;
-//   }
-
-//   build(): TableDefinition<Fields> {
-//     return {
-//       fields: this.fields,
-//       indexes: this._indexes,
-//     };
-//   }
-// }
 
 /**
  * Define a table in a schema.
@@ -160,7 +125,7 @@ export function defineTable<DocumentSchema extends Record<string, GenericValidat
 export function defineTable<
   DocumentSchema extends
     | Validator<Record<string, any>, "required", any>
-    | Record<string, GenericValidator>
+    | Record<string, GenericValidator>,
 >(documentSchema: DocumentSchema): TableDefinition<any> {
   if (isValidator(documentSchema)) {
     return new TableDefinition(documentSchema);
@@ -284,7 +249,7 @@ export interface DefineSchemaOptions<StrictTableNameTypes extends boolean> {
  */
 export function defineSchema<
   Schema extends GenericSchema,
-  StrictTableNameTypes extends boolean = true
+  StrictTableNameTypes extends boolean = true,
 >(
   schema: Schema,
   options?: DefineSchemaOptions<StrictTableNameTypes>
@@ -317,58 +282,5 @@ export type DataModelFromSchemaDefinition<SchemaDef extends SchemaDefinition<any
 
 type MaybeMakeLooseDataModel<
   DataModel extends GenericDataModel,
-  StrictTableNameTypes extends boolean
+  StrictTableNameTypes extends boolean,
 > = StrictTableNameTypes extends true ? DataModel : Expand<DataModel & AnyDataModel>;
-
-// export type DataModel = Record<string, Record<string, any>>;
-
-// // Helper to extract data model types from schema
-// export type ExtractDataModel<S extends SchemaDefinition | Schema<any>> = S extends Schema<
-//   infer SchemaDefType
-// >
-//   ? ExtractDataModel<SchemaDefType>
-//   : S extends SchemaDefinition
-//   ? {
-//       [TableName in keyof S]: S[TableName] extends TableDefinition<infer Fields>
-//         ? InferTableType<TableDefinition<Fields>>
-//         : S[TableName] extends TableBuilder<infer Fields>
-//         ? InferTableType<TableDefinition<Fields>>
-//         : never;
-//     }
-//   : never;
-
-// // Normalize a schema definition to convert all TableBuilders to TableDefinitions
-// export type NormalizedSchema<S extends SchemaDefinition> = {
-//   [K in keyof S]: S[K] extends TableBuilder<infer Fields>
-//     ? TableDefinition<Fields>
-//     : S[K] extends TableDefinition<infer Fields>
-//     ? TableDefinition<Fields>
-//     : never;
-// };
-
-// export class Schema<S extends SchemaDefinition = SchemaDefinition> {
-//   // Type marker to preserve the schema definition type for type inference
-//   // @ts-expect-error - This field is used only for type inference and is intentionally unused at runtime
-//   private readonly _schemaType?: S;
-
-//   constructor(public readonly tables: Record<string, TableDefinition<any>>) {}
-
-//   getTable(tableName: string): TableDefinition<any> | undefined {
-//     return this.tables[tableName];
-//   }
-
-//   validateDocument(tableName: string, data: any): any {
-//     const table = this.getTable(tableName);
-//     if (!table) {
-//       throw new Error(`Table ${tableName} not found in schema`);
-//     }
-
-//     const schemaFields: Record<string, any> = {};
-//     for (const [key, validator] of Object.entries(table.fields)) {
-//       schemaFields[key] = (validator as Validator)._schema;
-//     }
-
-//     const schema = v.object(schemaFields);
-//     return v.parse(schema, data);
-//   }
-// }
