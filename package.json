@@ -2,8 +2,6 @@
   "name": "@smartbill/firestore-convex-style",
   "description": "A Convex-style SDK for Firestore with type-safe schemas and queries",
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
