@@ -11,7 +11,7 @@ type TableNameFromType<T> = T extends GenericId<infer TableName> ? TableName : s
 abstract class BaseValidator<
   Type,
   IsOptional extends OptionalProperty = "required",
-  FieldPaths extends string = never
+  FieldPaths extends string = never,
 > {
   /**
    * Only for TypeScript, the TS type of the JS values validated
@@ -83,7 +83,7 @@ export class VId<Type, IsOptional extends OptionalProperty = "required"> extends
     return { type: "id", tableName: this.tableName };
   }
   /** @internal */
-  asOptional() {
+  asOptional(): VId<Type | undefined, "optional"> {
     return new VId<Type | undefined, "optional">({
       isOptional: "optional",
       tableName: this.tableName,
@@ -96,7 +96,7 @@ export class VId<Type, IsOptional extends OptionalProperty = "required"> extends
  */
 export class VFloat64<
   Type = number,
-  IsOptional extends OptionalProperty = "required"
+  IsOptional extends OptionalProperty = "required",
 > extends BaseValidator<Type, IsOptional> {
   /**
    * The kind of validator, `"float64"`.
@@ -109,7 +109,7 @@ export class VFloat64<
     return { type: "number" };
   }
   /** @internal */
-  asOptional() {
+  asOptional(): VFloat64<Type | undefined, "optional"> {
     return new VFloat64<Type | undefined, "optional">({
       isOptional: "optional",
     });
@@ -121,7 +121,7 @@ export class VFloat64<
  */
 export class VInt64<
   Type = bigint,
-  IsOptional extends OptionalProperty = "required"
+  IsOptional extends OptionalProperty = "required",
 > extends BaseValidator<Type, IsOptional> {
   /**
    * The kind of validator, `"int64"`.
@@ -134,7 +134,7 @@ export class VInt64<
     return { type: "bigint" };
   }
   /** @internal */
-  asOptional() {
+  asOptional(): VInt64<Type | undefined, "optional"> {
     return new VInt64<Type | undefined, "optional">({ isOptional: "optional" });
   }
 }
@@ -144,7 +144,7 @@ export class VInt64<
  */
 export class VBoolean<
   Type = boolean,
-  IsOptional extends OptionalProperty = "required"
+  IsOptional extends OptionalProperty = "required",
 > extends BaseValidator<Type, IsOptional> {
   /**
    * The kind of validator, `"boolean"`.
@@ -156,7 +156,7 @@ export class VBoolean<
     return { type: this.kind };
   }
   /** @internal */
-  asOptional() {
+  asOptional(): VBoolean<Type | undefined, "optional"> {
     return new VBoolean<Type | undefined, "optional">({
       isOptional: "optional",
     });
@@ -168,7 +168,7 @@ export class VBoolean<
  */
 export class VBytes<
   Type = ArrayBuffer,
-  IsOptional extends OptionalProperty = "required"
+  IsOptional extends OptionalProperty = "required",
 > extends BaseValidator<Type, IsOptional> {
   /**
    * The kind of validator, `"bytes"`.
@@ -180,7 +180,7 @@ export class VBytes<
     return { type: this.kind };
   }
   /** @internal */
-  asOptional() {
+  asOptional(): VBytes<Type | undefined, "optional"> {
     return new VBytes<Type | undefined, "optional">({ isOptional: "optional" });
   }
 }
@@ -190,7 +190,7 @@ export class VBytes<
  */
 export class VString<
   Type = string,
-  IsOptional extends OptionalProperty = "required"
+  IsOptional extends OptionalProperty = "required",
 > extends BaseValidator<Type, IsOptional> {
   /**
    * The kind of validator, `"string"`.
@@ -202,7 +202,7 @@ export class VString<
     return { type: this.kind };
   }
   /** @internal */
-  asOptional() {
+  asOptional(): VString<Type | undefined, "optional"> {
     return new VString<Type | undefined, "optional">({
       isOptional: "optional",
     });
@@ -214,7 +214,7 @@ export class VString<
  */
 export class VNull<
   Type = null,
-  IsOptional extends OptionalProperty = "required"
+  IsOptional extends OptionalProperty = "required",
 > extends BaseValidator<Type, IsOptional> {
   /**
    * The kind of validator, `"null"`.
@@ -226,7 +226,7 @@ export class VNull<
     return { type: this.kind };
   }
   /** @internal */
-  asOptional() {
+  asOptional(): VNull<Type | undefined, "optional"> {
     return new VNull<Type | undefined, "optional">({ isOptional: "optional" });
   }
 }
@@ -237,7 +237,7 @@ export class VNull<
 export class VAny<
   Type = any,
   IsOptional extends OptionalProperty = "required",
-  FieldPaths extends string = string
+  FieldPaths extends string = string,
 > extends BaseValidator<Type, IsOptional, FieldPaths> {
   /**
    * The kind of validator, `"any"`.
@@ -251,7 +251,7 @@ export class VAny<
     };
   }
   /** @internal */
-  asOptional() {
+  asOptional(): VAny<Type | undefined, "optional", FieldPaths> {
     return new VAny<Type | undefined, "optional", FieldPaths>({
       isOptional: "optional",
     });
@@ -270,7 +270,7 @@ export class VObject<
       | JoinFieldPaths<Property & string, Fields[Property]["fieldPaths"]>
       | Property;
   }[keyof Fields] &
-    string
+    string,
 > extends BaseValidator<Type, IsOptional, FieldPaths> {
   /**
    * An object with the validator for each property.
@@ -305,7 +305,7 @@ export class VObject<
     };
   }
   /** @internal */
-  asOptional() {
+  asOptional(): VObject<Type | undefined, Fields, "optional", FieldPaths> {
     return new VObject<Type | undefined, Fields, "optional", FieldPaths>({
       isOptional: "optional",
       fields: this.fields,
@@ -345,7 +345,7 @@ export class VLiteral<Type, IsOptional extends OptionalProperty = "required"> ex
     };
   }
   /** @internal */
-  asOptional() {
+  asOptional(): VLiteral<Type | undefined, "optional"> {
     return new VLiteral<Type | undefined, "optional">({
       isOptional: "optional",
       value: this.value,
@@ -359,7 +359,7 @@ export class VLiteral<Type, IsOptional extends OptionalProperty = "required"> ex
 export class VArray<
   Type,
   Element extends Validator<any, "required", any>,
-  IsOptional extends OptionalProperty = "required"
+  IsOptional extends OptionalProperty = "required",
 > extends BaseValidator<Type, IsOptional> {
   /**
    * The validator for the elements of the array.
@@ -386,7 +386,7 @@ export class VArray<
     };
   }
   /** @internal */
-  asOptional() {
+  asOptional(): VArray<Type | undefined, Element, "optional"> {
     return new VArray<Type | undefined, Element, "optional">({
       isOptional: "optional",
       element: this.element,
@@ -402,7 +402,7 @@ export class VRecord<
   Key extends Validator<string, "required", any>,
   Value extends Validator<any, "required", any>,
   IsOptional extends OptionalProperty = "required",
-  FieldPaths extends string = string
+  FieldPaths extends string = string,
 > extends BaseValidator<Type, IsOptional, FieldPaths> {
   /**
    * The validator for the keys of the record.
@@ -446,7 +446,7 @@ export class VRecord<
     };
   }
   /** @internal */
-  asOptional() {
+  asOptional(): VRecord<Type | undefined, Key, Value, "optional", FieldPaths> {
     return new VRecord<Type | undefined, Key, Value, "optional", FieldPaths>({
       isOptional: "optional",
       key: this.key,
@@ -462,7 +462,7 @@ export class VUnion<
   Type,
   T extends Validator<any, "required", any>[],
   IsOptional extends OptionalProperty = "required",
-  FieldPaths extends string = T[number]["fieldPaths"]
+  FieldPaths extends string = T[number]["fieldPaths"],
 > extends BaseValidator<Type, IsOptional, FieldPaths> {
   /**
    * The array of validators, one of which must match the value.
@@ -489,7 +489,7 @@ export class VUnion<
     };
   }
   /** @internal */
-  asOptional() {
+  asOptional(): VUnion<Type | undefined, T, "optional", FieldPaths> {
     return new VUnion<Type | undefined, T, "optional">({
       isOptional: "optional",
       members: this.members,
@@ -559,7 +559,7 @@ export type OptionalProperty = "optional" | "required";
 export type Validator<
   Type,
   IsOptional extends OptionalProperty = "required",
-  FieldPaths extends string = never
+  FieldPaths extends string = never,
 > =
   | VId<Type, IsOptional>
   | VString<Type, IsOptional>
