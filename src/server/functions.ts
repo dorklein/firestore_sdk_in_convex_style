@@ -1,7 +1,7 @@
 import { Firestore } from "firebase-admin/firestore";
-import { DatabaseImpl, TransactionalDatabaseImpl } from "./database.ts";
-import { SchemaDefinition } from "./schema.ts";
-import { GenericDataModel } from "./data_model.ts";
+import { DatabaseImpl, TransactionalDatabaseImpl } from "./database.js";
+import { SchemaDefinition } from "./schema.js";
+import { GenericDataModel } from "./data_model.js";
 import {
   GenericQueryCtx,
   GenericMutationCtx,
@@ -9,8 +9,8 @@ import {
   RegisteredQuery,
   RegisteredMutation,
   RegisteredAction,
-} from "./registration.ts";
-import { ObjectType, PropertyValidators } from "../values/index.ts";
+} from "./registration.js";
+import { ObjectType, PropertyValidators } from "../values/index.js";
 
 /**
  * Runtime executor for Convex-style functions.

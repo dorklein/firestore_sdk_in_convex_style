@@ -2,10 +2,10 @@ export function tsconfigCodegen() {
   return `{
     /* This TypeScript project config describes the environment that
      * Firestore functions run in and is used to typecheck them.
-     * You can modify it, but some settings are required to use Firestore.
+     * You can modify it, but some settings are required to use Firestore-Convex-Style.
      */
     "compilerOptions": {
-      /* These settings are not required by Firestore and can be modified. */
+      /* These settings are not required by Firestore-Convex-Style and can be modified. */
       "allowJs": true,
       "strict": true,
       "moduleResolution": "Bundler",
@@ -13,7 +13,7 @@ export function tsconfigCodegen() {
       "skipLibCheck": true,
       "allowSyntheticDefaultImports": true,
   
-      /* These compiler options are required by Firestore */
+      /* These compiler options are required by Firestore-Convex-Style */
       "target": "ESNext",
       "lib": ["ES2021", "dom"],
       "forceConsistentCasingInFileNames": true,

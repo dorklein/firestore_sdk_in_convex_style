@@ -19,7 +19,7 @@ export {
   type TableDefinition,
   type GenericSchema,
   type DataModelFromSchemaDefinition,
-} from "./server/schema.ts";
+} from "./server/schema.js";
 
 // Export database types
 export {
@@ -30,7 +30,7 @@ export {
   type DatabaseWriter,
   type GenericDatabaseReader,
   type GenericDatabaseWriter,
-} from "./server/database.ts";
+} from "./server/database.js";
 
 // Export data model types
 export type {
@@ -40,7 +40,7 @@ export type {
   GenericTableInfo,
   NamedTableInfo,
   GenericDocument,
-} from "./server/data_model.ts";
+} from "./server/data_model.js";
 
 // Export system fields types
 export type {
@@ -48,7 +48,7 @@ export type {
   IdField,
   WithoutSystemFields,
   WithOptionalSystemFields,
-} from "./server/system_fields.ts";
+} from "./server/system_fields.js";
 
 // Export type utils
 export type { Expand, BetterOmit } from "./type_utils.js";
@@ -62,8 +62,8 @@ export type {
   FunctionReturnType,
   FunctionArgs,
   FunctionReturn,
-} from "./server/api.ts";
+} from "./server/api.js";
 
 // Export function runner
-export { FunctionRunner, createFunctionRunner } from "./server/functions.ts";
-export * from "./server/index.ts";
+export { FunctionRunner, createFunctionRunner } from "./server/functions.js";
+export * from "./server/index.js";

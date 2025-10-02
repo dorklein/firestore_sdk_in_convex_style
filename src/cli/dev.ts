@@ -2,8 +2,8 @@
 
 import { dirname, join } from "node:path";
 import { existsSync, mkdirSync, writeFileSync, watch } from "node:fs";
-import { serverCodegen } from "./codegen_templates/server.ts";
-import { dynamicDataModelDTS } from "./codegen_templates/dataModel.ts";
+import { serverCodegen } from "./codegen_templates/server.js";
+import { dynamicDataModelDTS } from "./codegen_templates/dataModel.js";
 import { format } from "prettier";
 
 interface CodegenOptions {

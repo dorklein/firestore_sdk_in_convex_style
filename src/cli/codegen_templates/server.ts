@@ -1,4 +1,4 @@
-import { header } from "./common.ts";
+import { header } from "./common.js";
 
 export function serverCodegen() {
   const serverDTS = `

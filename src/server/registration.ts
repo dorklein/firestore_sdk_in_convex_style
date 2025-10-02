@@ -3,16 +3,16 @@ import {
   FunctionReturnType,
   OptionalRestArgs,
   ValidatorTypeToReturnType,
-} from "./api.ts";
-import { GenericDataModel } from "./data_model.ts";
-import { GenericDatabaseReader, GenericDatabaseWriter } from "./database.ts";
+} from "./api.js";
+import { GenericDataModel } from "./data_model.js";
+import { GenericDatabaseReader, GenericDatabaseWriter } from "./database.js";
 import {
   GenericValidator,
   Infer,
   ObjectType,
   PropertyValidators,
   Validator,
-} from "../values/index.ts";
+} from "../values/index.js";
 
 // Re-export PropertyValidators so it's available to importers
 export type { PropertyValidators };

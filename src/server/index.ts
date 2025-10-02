@@ -132,7 +132,7 @@ export type {
   GenericSchema,
   DataModelFromSchemaDefinition,
 } from "./schema.ts";
-export { defineTable, defineSchema } from "./schema.ts";
+export { defineTable, defineSchema } from "./schema.js";
 
 /**
  * @public

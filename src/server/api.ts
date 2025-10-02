@@ -5,7 +5,7 @@ import {
   RegisteredQuery,
   RegisteredMutation,
   RegisteredAction,
-} from "./registration.ts";
+} from "./registration.js";
 
 /**
  * The type of a Convex function.

@@ -1,6 +1,6 @@
-import { AnyDataModel, GenericDataModel } from "./data_model.ts";
-import { IdField, SystemFields } from "./system_fields.ts";
-import { Expand } from "../type_utils.ts";
+import { AnyDataModel, GenericDataModel } from "./data_model.js";
+import { IdField, SystemFields } from "./system_fields.js";
+import { Expand } from "../type_utils.js";
 import {
   GenericValidator,
   ObjectType,
@@ -8,8 +8,8 @@ import {
   VObject,
   v,
   ValidatorJSON,
-} from "../values/index.ts";
-import { isValidator } from "../values/validator.ts";
+} from "../values/index.js";
+import { isValidator } from "../values/validator.js";
 
 /**
  * Extract all of the index field paths within a {@link Validator}.
@@ -237,7 +237,7 @@ export interface DefineSchemaOptions<StrictTableNameTypes extends boolean> {
 /**
  * Define the schema of this Convex project.
  *
- * This should be exported from a `schema.ts` file in your `convex/` directory
+ * This should be exported from a `schema.js` file in your `convex/` directory
  * like:
  *
  * ```ts

@@ -1,4 +1,4 @@
-import { Value } from "../values/index.ts";
+import { Value } from "../values/index.js";
 
 // Document Types  /////////////////////////////////////////////////////////////
 

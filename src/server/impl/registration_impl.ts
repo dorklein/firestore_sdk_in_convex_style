@@ -1,5 +1,5 @@
-import { asObjectValidator, Validator } from "../../values/index.ts";
-import { GenericDataModel } from "../data_model.ts";
+import { asObjectValidator, Validator } from "../../values/index.js";
+import { GenericDataModel } from "../data_model.js";
 import {
   QueryBuilder,
   ArgsArrayForOptionalValidator,
@@ -15,7 +15,7 @@ import {
   ActionBuilder,
   GenericActionCtx,
   RegisteredAction,
-} from "../registration.ts";
+} from "../registration.js";
 
 /**
  * Define a query in this Convex app's public API.
