@@ -187,7 +187,7 @@ export function setupWriter(
       return await delete_(db, table, id);
     },
     table: (tableName) => {
-      return new TableWriter(tableName, false, db);
+      return new TableWriter(tableName, false, db) as any;
     },
   };
 }
