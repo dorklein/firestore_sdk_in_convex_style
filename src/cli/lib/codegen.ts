@@ -3,7 +3,6 @@ import prettier from "prettier";
 import { withTmpDir, TempDir } from "../../bundler/fs.js";
 import { entryPoints } from "../../bundler/index.js";
 import { apiCodegen } from "../codegen_templates/api.js";
-import { apiCjsCodegen } from "../codegen_templates/api_cjs.js";
 import { dynamicDataModelDTS, noSchemaDataModelDTS } from "../codegen_templates/dataModel.js";
 import { readmeCodegen } from "../codegen_templates/readme.js";
 import { serverCodegen } from "../codegen_templates/server.js";
@@ -60,9 +59,8 @@ export async function doCodegen(
   ctx: Context,
   functionsDir: string,
   typeCheckMode: TypeCheckMode,
-  opts?: { dryRun?: boolean; generateCommonJSApi?: boolean; debug?: boolean }
+  opts?: { dryRun?: boolean; debug?: boolean }
 ) {
-  const { projectConfig } = await readProjectConfig(ctx);
   const codegenDir = await prepareForCodegen(ctx, functionsDir);
 
   await withTmpDir(async (tmpDir) => {
@@ -83,14 +81,7 @@ export async function doCodegen(
     // The `api.d.ts` file imports from the developer's modules, which then
     // import from `server.d.ts`. Note that there's a cycle here, since the
     // developer's modules could also import from the `api.{js,d.ts}` files.
-    const apiFiles = await doApiCodegen(
-      ctx,
-      tmpDir,
-      functionsDir,
-      codegenDir,
-      opts?.generateCommonJSApi || projectConfig.generateCommonJSApi,
-      opts
-    );
+    const apiFiles = await doApiCodegen(ctx, tmpDir, functionsDir, codegenDir, opts);
     writtenFiles.push(...apiFiles);
 
     // Cleanup any files that weren't written in this run.
@@ -199,7 +190,6 @@ async function doApiCodegen(
   tmpDir: TempDir,
   functionsDir: string,
   codegenDir: string,
-  generateCommonJSApi: boolean,
   opts?: { dryRun?: boolean; debug?: boolean }
 ) {
   const absModulePaths = await entryPoints(ctx, functionsDir);
@@ -223,27 +213,6 @@ async function doApiCodegen(
     opts
   );
   const writtenFiles = ["api.js", "api.d.ts"];
-
-  if (generateCommonJSApi) {
-    const apiCjsContent = apiCjsCodegen(modulePaths);
-    await writeFormattedFile(
-      ctx,
-      tmpDir,
-      apiCjsContent.JS,
-      "typescript",
-      path.join(codegenDir, "api_cjs.cjs"),
-      opts
-    );
-    await writeFormattedFile(
-      ctx,
-      tmpDir,
-      apiCjsContent.DTS,
-      "typescript",
-      path.join(codegenDir, "api_cjs.d.cts"),
-      opts
-    );
-    writtenFiles.push("api_cjs.cjs", "api_cjs.d.cts");
-  }
 
   return writtenFiles;
 }

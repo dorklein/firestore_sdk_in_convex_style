@@ -84,7 +84,7 @@ export function apiCodegen(modulePaths: string[]) {
     .join("\n")}
 
   /**
-   * A utility for referencing Convex functions in your app's API.
+   * A utility for referencing firestore-convex-style functions in your app's API.
    *
    * Usage:
    * \`\`\`js
@@ -101,10 +101,10 @@ export function apiCodegen(modulePaths: string[]) {
   `;
 
   const apiJS = `${header("Generated `api` utility.")}
-  import { anyApi } from "convex/server";
+  import { anyApi } from "@smartbill/firestore-convex-style/server";
 
   /**
-   * A utility for referencing Convex functions in your app's API.
+   * A utility for referencing firestore-convex-style functions in your app's API.
    *
    * Usage:
    * \`\`\`js
