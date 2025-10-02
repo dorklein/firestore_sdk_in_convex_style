@@ -1,9 +1,4 @@
-import {
-  FunctionReference,
-  FunctionReturnType,
-  OptionalRestArgs,
-  ValidatorTypeToReturnType,
-} from "./api.js";
+import { FunctionReference, OptionalRestArgs, ValidatorTypeToReturnType } from "./api.js";
 import { GenericDataModel } from "./data_model.js";
 import { GenericDatabaseReader, GenericDatabaseWriter } from "./database.js";
 import {
@@ -114,10 +109,14 @@ export interface GenericQueryCtx<DataModel extends GenericDataModel> {
    * `runQuery` incurs overhead of running argument and return value validation,
    * and creating a new isolated JS context.
    */
-  runQuery: <Query extends FunctionReference<"query", "public" | "internal">>(
+  runQuery: <
+    Query extends
+      | FunctionReference<"query", "public" | "internal">
+      | RegisteredQuery<any, any, any>,
+  >(
     query: Query,
-    ...args: OptionalRestArgs<Query>
-  ) => Promise<FunctionReturnType<Query>>;
+    ...args: Query extends FunctionReference<any, any, any, any> ? OptionalRestArgs<Query> : any[]
+  ) => Promise<Query extends FunctionReference<any, any, any, infer R> ? R : any>;
 }
 
 /**
@@ -148,18 +147,28 @@ export interface GenericMutationCtx<DataModel extends GenericDataModel> {
   /**
    * Call a query function within the same transaction.
    */
-  runQuery: <Query extends FunctionReference<"query", "public" | "internal">>(
+  runQuery: <
+    Query extends
+      | FunctionReference<"query", "public" | "internal">
+      | RegisteredQuery<any, any, any>,
+  >(
     query: Query,
-    ...args: OptionalRestArgs<Query>
-  ) => Promise<FunctionReturnType<Query>>;
+    ...args: Query extends FunctionReference<any, any, any, any> ? OptionalRestArgs<Query> : any[]
+  ) => Promise<Query extends FunctionReference<any, any, any, infer R> ? R : any>;
 
   /**
    * Call a mutation function within the same transaction.
    */
-  runMutation: <Mutation extends FunctionReference<"mutation", "public" | "internal">>(
+  runMutation: <
+    Mutation extends
+      | FunctionReference<"mutation", "public" | "internal">
+      | RegisteredMutation<any, any, any>,
+  >(
     mutation: Mutation,
-    ...args: OptionalRestArgs<Mutation>
-  ) => Promise<FunctionReturnType<Mutation>>;
+    ...args: Mutation extends FunctionReference<any, any, any, any>
+      ? OptionalRestArgs<Mutation>
+      : any[]
+  ) => Promise<Mutation extends FunctionReference<any, any, any, infer R> ? R : any>;
 }
 
 /**
@@ -191,10 +200,14 @@ export interface GenericActionCtx<DataModel extends GenericDataModel> {
    * Actions cannot directly read from the database, so use this to run
    * queries to fetch data.
    */
-  runQuery: <Query extends FunctionReference<"query", "public" | "internal">>(
+  runQuery: <
+    Query extends
+      | FunctionReference<"query", "public" | "internal">
+      | RegisteredQuery<any, any, any>,
+  >(
     query: Query,
-    ...args: OptionalRestArgs<Query>
-  ) => Promise<FunctionReturnType<Query>>;
+    ...args: Query extends FunctionReference<any, any, any, any> ? OptionalRestArgs<Query> : any[]
+  ) => Promise<Query extends FunctionReference<any, any, any, infer R> ? R : any>;
 
   /**
    * Call a mutation function.
@@ -202,18 +215,28 @@ export interface GenericActionCtx<DataModel extends GenericDataModel> {
    * Actions cannot directly write to the database, so use this to run
    * mutations to modify data.
    */
-  runMutation: <Mutation extends FunctionReference<"mutation", "public" | "internal">>(
+  runMutation: <
+    Mutation extends
+      | FunctionReference<"mutation", "public" | "internal">
+      | RegisteredMutation<any, any, any>,
+  >(
     mutation: Mutation,
-    ...args: OptionalRestArgs<Mutation>
-  ) => Promise<FunctionReturnType<Mutation>>;
+    ...args: Mutation extends FunctionReference<any, any, any, any>
+      ? OptionalRestArgs<Mutation>
+      : any[]
+  ) => Promise<Mutation extends FunctionReference<any, any, any, infer R> ? R : any>;
 
   /**
    * Call another action function.
    */
-  runAction: <Action extends FunctionReference<"action", "public" | "internal">>(
+  runAction: <
+    Action extends
+      | FunctionReference<"action", "public" | "internal">
+      | RegisteredAction<any, any, any>,
+  >(
     action: Action,
-    ...args: OptionalRestArgs<Action>
-  ) => Promise<FunctionReturnType<Action>>;
+    ...args: Action extends FunctionReference<any, any, any, any> ? OptionalRestArgs<Action> : any[]
+  ) => Promise<Action extends FunctionReference<any, any, any, infer R> ? R : any>;
 }
 
 /**

@@ -101,7 +101,7 @@ export function apiCodegen(modulePaths: string[]) {
   `;
 
   const apiJS = `${header("Generated `api` utility.")}
-  import { anyApi } from "@smartbill/firestore-convex-style/server";
+  import { createApi } from "@smartbill/firestore-convex-style/server";
 
   /**
    * A utility for referencing firestore-convex-style functions in your app's API.
@@ -111,8 +111,8 @@ export function apiCodegen(modulePaths: string[]) {
    * const myFunctionReference = api.myModule.myFunction;
    * \`\`\`
    */
-  export const api = anyApi;
-  export const internal = anyApi;
+  export const api = createApi();
+  export const internal = createApi();
   `;
   return {
     DTS: apiDTS,

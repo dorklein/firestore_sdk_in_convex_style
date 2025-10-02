@@ -13,10 +13,6 @@ import type {
   FilterApi,
   FunctionReference,
 } from "@smartbill/firestore-convex-style/server";
-import type * as demoWithActions from "../demoWithActions.js";
-import type * as functions from "../functions.js";
-import type * as usage_example from "../usage-example.js";
-import type * as usage from "../usage.js";
 
 /**
  * A utility for referencing firestore-convex-style functions in your app's API.
@@ -26,12 +22,7 @@ import type * as usage from "../usage.js";
  * const myFunctionReference = api.myModule.myFunction;
  * ```
  */
-declare const fullApi: ApiFromModules<{
-  demoWithActions: typeof demoWithActions;
-  functions: typeof functions;
-  "usage-example": typeof usage_example;
-  usage: typeof usage;
-}>;
+declare const fullApi: ApiFromModules<{}>;
 export declare const api: FilterApi<
   typeof fullApi,
   FunctionReference<any, "public">

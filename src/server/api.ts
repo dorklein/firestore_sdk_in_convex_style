@@ -125,47 +125,6 @@ export function makeFunctionReference<
 }
 
 /**
- * Create a runtime API object that implements {@link AnyApi}.
- *
- * This allows accessing any path regardless of what directories, modules,
- * or functions are defined.
- *
- * @param pathParts - The path to the current node in the API.
- * @returns An {@link AnyApi}
- * @public
- */
-function createApi(pathParts: string[] = []): AnyApi {
-  const handler: ProxyHandler<object> = {
-    get(_, prop: string | symbol) {
-      if (typeof prop === "string") {
-        const newParts = [...pathParts, prop];
-        return createApi(newParts);
-      } else if (prop === functionName) {
-        if (pathParts.length < 2) {
-          const found = ["api", ...pathParts].join(".");
-          throw new Error(
-            `API path is expected to be of the form \`api.moduleName.functionName\`. Found: \`${found}\``
-          );
-        }
-        const path = pathParts.slice(0, -1).join("/");
-        const exportName = pathParts[pathParts.length - 1];
-        if (exportName === "default") {
-          return path;
-        } else {
-          return path + ":" + exportName;
-        }
-      } else if (prop === Symbol.toStringTag) {
-        return "FunctionReference";
-      } else {
-        return undefined;
-      }
-    },
-  };
-
-  return new Proxy({}, handler);
-}
-
-/**
  * Given an export from a module, convert it to a {@link FunctionReference}
  * if it is a Convex function.
  */
@@ -379,6 +338,47 @@ export type PartialApi<API> = {
  * @public
  */
 export const anyApi: AnyApi = createApi() as any;
+
+/**
+ * Create a runtime API object that implements {@link AnyApi}.
+ *
+ * This allows accessing any path regardless of what directories, modules,
+ * or functions are defined.
+ *
+ * @param pathParts - The path to the current node in the API.
+ * @returns An {@link AnyApi}
+ * @public
+ */
+export function createApi(pathParts: string[] = []): AnyApi {
+  const handler: ProxyHandler<object> = {
+    get(_, prop: string | symbol) {
+      if (typeof prop === "string") {
+        const newParts = [...pathParts, prop];
+        return createApi(newParts);
+      } else if (prop === functionName) {
+        if (pathParts.length < 2) {
+          const found = ["api", ...pathParts].join(".");
+          throw new Error(
+            `API path is expected to be of the form \`api.moduleName.functionName\`. Found: \`${found}\``
+          );
+        }
+        const path = pathParts.slice(0, -1).join("/");
+        const exportName = pathParts[pathParts.length - 1];
+        if (exportName === "default") {
+          return path;
+        } else {
+          return path + ":" + exportName;
+        }
+      } else if (prop === Symbol.toStringTag) {
+        return "FunctionReference";
+      } else {
+        return undefined;
+      }
+    },
+  };
+
+  return new Proxy({}, handler);
+}
 
 /**
  * Given a {@link FunctionReference}, get the return type of the function.

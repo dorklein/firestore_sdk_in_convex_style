@@ -1,0 +1,5 @@
+---
+alwaysApply: true
+---
+
+Always run cd in a seprate command. Instead of doing "cd ../sompath && command", run in one command "cd ../sompath" and after finished run the 'command'

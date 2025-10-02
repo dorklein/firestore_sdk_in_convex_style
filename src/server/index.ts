@@ -108,7 +108,7 @@ export type {
   SystemIndexes,
   IndexTiebreakerField,
 } from "./system_fields.js";
-// export type { anyApi, getFunctionName, makeFunctionReference, filterApi } from "./api.ts";
+export { anyApi, createApi } from "./api.js";
 export type {
   FunctionType,
   FunctionReference,

@@ -29,7 +29,7 @@ async function generateTypes(options: CodegenOptions): Promise<void> {
   }
 
   showSpinner("Generating types...");
-  await doCodegen(ctx, outputDir, "try", options);
+  await doCodegen(ctx, outputDir, "disable", options);
 
   stopSpinner();
   logFinishedStep("Generated types successfully");

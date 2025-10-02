@@ -1,6 +1,7 @@
 import { v } from "@smartbill/firestore-convex-style/values";
 import type { DataModel } from "./_generated/dataModel.js";
 import { internalMutation, internalQuery, mutation } from "./_generated/server.js";
+import { internal, api } from "./_generated/api.js";
 
 const CUSTOMER_NOT_FOUND_ERROR = "Customer not found";
 const USER_NOT_FOUND_ERROR = "User not found";
@@ -18,6 +19,7 @@ export const getCustomerById = internalQuery({
 export const getCustomersByUser = internalQuery({
   args: {
     userId: v.id("users"),
+    customerId: v.id("customers"),
     searchName: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
@@ -130,7 +132,6 @@ export const createInvoice = mutation({
     ),
   },
   handler: async (ctx, args) => {
-    // Verify customer exists and get userId
     const customer = await ctx.db.get(args.customerId);
     if (!customer) throw new Error(CUSTOMER_NOT_FOUND_ERROR);
 
