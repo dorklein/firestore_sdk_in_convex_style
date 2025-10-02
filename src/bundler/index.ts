@@ -1,6 +1,6 @@
 import path from "path";
 import chalk from "chalk";
-import esbuild from "esbuild";
+
 import { Filesystem, consistentPathSort } from "./fs.js";
 import { Context } from "./context.js";
 import { logVerbose, logWarning } from "./log.js";
@@ -45,258 +45,6 @@ export interface BundleHash {
   environment: ModuleEnvironment;
 }
 
-type EsBuildResult = esbuild.BuildResult & {
-  outputFiles: esbuild.OutputFile[];
-  // Set of referenced external modules.
-  externalModuleNames: Set<string>;
-  // Set of bundled modules.
-  bundledModuleNames: Set<string>;
-};
-
-// async function doEsbuild(
-//   ctx: Context,
-//   dir: string,
-//   entryPoints: string[],
-//   generateSourceMaps: boolean,
-//   platform: esbuild.Platform,
-//   chunksFolder: string,
-//   externalPackages: Map<string, ExternalPackage>,
-//   extraConditions: string[]
-// ): Promise<EsBuildResult> {
-//   const external = createExternalPlugin(ctx, externalPackages);
-//   try {
-//     const result = await innerEsbuild({
-//       entryPoints,
-//       platform,
-//       generateSourceMaps,
-//       chunksFolder,
-//       extraConditions,
-//       dir,
-//       // The wasmPlugin should be last so it doesn't run on external modules.
-//       plugins: [external.plugin, wasmPlugin],
-//     });
-
-//     for (const [relPath, input] of Object.entries(result.metafile!.inputs)) {
-//       // TODO: esbuild outputs paths prefixed with "(disabled)"" when bundling our internal
-//       // udf-runtime package. The files do actually exist locally, though.
-//       if (
-//         relPath.indexOf("(disabled):") !== -1 ||
-//         relPath.startsWith("wasm-binary:") ||
-//         relPath.startsWith("wasm-stub:")
-//       ) {
-//         continue;
-//       }
-//       const absPath = path.resolve(relPath);
-//       const st = ctx.fs.stat(absPath);
-//       if (st.size !== input.bytes) {
-//         logWarning(`Bundled file ${absPath} changed right after esbuild invocation`);
-//         // Consider this a transient error so we'll try again and hopefully
-//         // no files change right after esbuild next time.
-//         return await ctx.crash({
-//           exitCode: 1,
-//           errorType: "transient",
-//           printedMessage: null,
-//         });
-//       }
-//       ctx.fs.registerPath(absPath, st);
-//     }
-//     return {
-//       ...result,
-//       externalModuleNames: external.externalModuleNames,
-//       bundledModuleNames: external.bundledModuleNames,
-//     };
-//   } catch (e: unknown) {
-//     // esbuild sometimes throws a build error instead of returning a result
-//     // containing an array of errors. Syntax errors are one of these cases.
-//     let recommendUseNode = false;
-//     if (isEsbuildBuildError(e)) {
-//       for (const error of e.errors) {
-//         if (error.location) {
-//           const absPath = path.resolve(error.location.file);
-//           const st = ctx.fs.stat(absPath);
-//           ctx.fs.registerPath(absPath, st);
-//         }
-//         if (
-//           platform !== "node" &&
-//           !recommendUseNode &&
-//           error.notes.some((note) => note.text.includes("Are you trying to bundle for node?"))
-//         ) {
-//           recommendUseNode = true;
-//         }
-//       }
-//     }
-//     return await ctx.crash({
-//       exitCode: 1,
-//       errorType: "invalid filesystem data",
-//       // We don't print any error because esbuild already printed
-//       // all the relevant information.
-//       printedMessage: recommendUseNode
-//         ? `\nIt looks like you are using Node APIs from a file without the "use node" directive.\n` +
-//           `Split out actions using Node.js APIs like this into a new file only containing actions that uses "use node" ` +
-//           `so these actions will run in a Node.js environment.\n` +
-//           `For more information see https://docs.convex.dev/functions/runtimes#nodejs-runtime\n`
-//         : null,
-//     });
-//   }
-// }
-
-// export async function bundle(
-//   ctx: Context,
-//   dir: string,
-//   entryPoints: string[],
-//   generateSourceMaps: boolean,
-//   platform: esbuild.Platform,
-//   chunksFolder = "_deps",
-//   externalPackagesAllowList: string[] = [],
-//   extraConditions: string[] = []
-// ): Promise<{
-//   modules: Bundle[];
-//   externalDependencies: Map<string, string>;
-//   bundledModuleNames: Set<string>;
-// }> {
-//   const availableExternalPackages = await computeExternalPackages(ctx, externalPackagesAllowList);
-//   const result = await doEsbuild(
-//     ctx,
-//     dir,
-//     entryPoints,
-//     generateSourceMaps,
-//     platform,
-//     chunksFolder,
-//     availableExternalPackages,
-//     extraConditions
-//   );
-//   // Some ESBuild errors won't show up here, instead crashing in doEsbuild().
-//   if (result.errors.length) {
-//     const errorMessage = result.errors.map((e) => `esbuild error: ${e.text}`).join("\n");
-//     return await ctx.crash({
-//       exitCode: 1,
-//       errorType: "invalid filesystem data",
-//       printedMessage: errorMessage,
-//     });
-//   }
-//   for (const warning of result.warnings) {
-//     logWarning(chalk.yellow(`esbuild warning: ${warning.text}`));
-//   }
-//   const sourceMaps = new Map();
-//   const modules: Bundle[] = [];
-//   const environment = platform === "node" ? "node" : "isolate";
-//   for (const outputFile of result.outputFiles) {
-//     const relPath = path.relative(path.normalize("out"), outputFile.path);
-//     if (path.extname(relPath) === ".map") {
-//       sourceMaps.set(relPath, outputFile.text);
-//       continue;
-//     }
-//     const posixRelPath = relPath.split(path.sep).join(path.posix.sep);
-//     modules.push({ path: posixRelPath, source: outputFile.text, environment });
-//   }
-//   for (const module of modules) {
-//     const sourceMapPath = module.path + ".map";
-//     const sourceMap = sourceMaps.get(sourceMapPath);
-//     if (sourceMap) {
-//       module.sourceMap = sourceMap;
-//     }
-//   }
-
-//   return {
-//     modules,
-//     externalDependencies: await externalPackageVersions(
-//       ctx,
-//       availableExternalPackages,
-//       result.externalModuleNames
-//     ),
-//     bundledModuleNames: result.bundledModuleNames,
-//   };
-// }
-
-// // We could return the full list of availableExternalPackages, but this would be
-// // installing more packages that we need. Instead, we collect all external
-// // dependencies we found during bundling the /convex function, as well as their
-// // respective peer and optional dependencies.
-// async function externalPackageVersions(
-//   ctx: Context,
-//   availableExternalPackages: Map<string, ExternalPackage>,
-//   referencedPackages: Set<string>
-// ): Promise<Map<string, string>> {
-//   const versions = new Map<string, string>();
-//   const referencedPackagesQueue = Array.from(referencedPackages.keys());
-
-//   for (let i = 0; i < referencedPackagesQueue.length; i++) {
-//     const moduleName = referencedPackagesQueue[i];
-//     // This assertion is safe because referencedPackages can only contain
-//     // packages in availableExternalPackages.
-//     const modulePath = availableExternalPackages.get(moduleName)!.path;
-//     // Since we don't support lock files and different install commands yet, we
-//     // pick up the exact version installed on the local filesystem.
-//     const { version, peerAndOptionalDependencies } = await findExactVersionAndDependencies(
-//       ctx,
-//       moduleName,
-//       modulePath
-//     );
-//     versions.set(moduleName, version);
-
-//     for (const dependency of peerAndOptionalDependencies) {
-//       if (availableExternalPackages.has(dependency) && !referencedPackages.has(dependency)) {
-//         referencedPackagesQueue.push(dependency);
-//         referencedPackages.add(dependency);
-//       }
-//     }
-//   }
-
-//   return versions;
-// }
-
-// export async function bundleSchema(ctx: Context, dir: string, extraConditions: string[]) {
-//   let target = path.resolve(dir, "schema.ts");
-//   if (!ctx.fs.exists(target)) {
-//     target = path.resolve(dir, "schema.js");
-//   }
-//   const result = await bundle(ctx, dir, [target], true, "browser", undefined, extraConditions);
-//   return result.modules;
-// }
-
-// export async function bundleAuthConfig(ctx: Context, dir: string) {
-//   const authConfigPath = path.resolve(dir, "auth.config.js");
-//   const authConfigTsPath = path.resolve(dir, "auth.config.ts");
-//   if (ctx.fs.exists(authConfigPath) && ctx.fs.exists(authConfigTsPath)) {
-//     return await ctx.crash({
-//       exitCode: 1,
-//       errorType: "invalid filesystem data",
-//       printedMessage: `Found both ${authConfigPath} and ${authConfigTsPath}, choose one.`,
-//     });
-//   }
-//   const chosenPath = ctx.fs.exists(authConfigTsPath) ? authConfigTsPath : authConfigPath;
-//   if (!ctx.fs.exists(chosenPath)) {
-//     logVerbose(
-//       chalk.yellow(
-//         `Found no auth config file at ${authConfigTsPath} or ${authConfigPath} so there are no configured auth providers`
-//       )
-//     );
-//     return [];
-//   }
-//   logVerbose(chalk.yellow(`Bundling auth config found at ${chosenPath}`));
-//   const result = await bundle(ctx, dir, [chosenPath], true, "browser");
-//   return result.modules;
-// }
-
-// export async function doesImportConvexHttpRouter(source: string) {
-//   try {
-//     const ast = parseAST(source, {
-//       sourceType: "module",
-//       plugins: ["typescript"],
-//     });
-//     return ast.program.body.some((node) => {
-//       if (node.type !== "ImportDeclaration") return false;
-//       return node.specifiers.some((s) => {
-//         const specifier = s as ImportSpecifier;
-//         const imported = specifier.imported as Identifier;
-//         return imported.name === "httpRouter";
-//       });
-//     });
-//   } catch {
-//     return source.match(/import\s*\{\s*httpRouter.*\}\s*from\s*"\s*convex\/server\s*"/) !== null;
-//   }
-// }
-
 const ENTRY_POINT_EXTENSIONS = [
   // ESBuild js loader
   ".js",
@@ -323,7 +71,6 @@ export async function entryPoints(ctx: Context, dir: string): Promise<string[]> 
     const relPath = path.relative(dir, fpath);
     const parsedPath = path.parse(fpath);
     const base = parsedPath.base;
-    const extension = parsedPath.ext.toLowerCase();
 
     if (relPath.startsWith("_deps" + path.sep)) {
       return await ctx.crash({
@@ -334,7 +81,7 @@ export async function entryPoints(ctx: Context, dir: string): Promise<string[]> 
     }
 
     if (depth === 0 && base.toLowerCase().startsWith("https.")) {
-      const source = ctx.fs.readUtf8File(fpath);
+      //   const source = ctx.fs.readUtf8File(fpath);
       //   if (await doesImportConvexHttpRouter(source))
       //     logWarning(
       //       chalk.yellow(
@@ -390,6 +137,7 @@ export async function entryPoints(ctx: Context, dir: string): Promise<string[]> 
         `Skipping ${fpath} because it has no export or import to make it a valid TypeScript module`
       )
     );
+    return false;
   });
 
   return nonEmptyEntryPoints;

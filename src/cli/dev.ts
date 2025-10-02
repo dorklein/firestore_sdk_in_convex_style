@@ -14,7 +14,7 @@ interface CodegenOptions {
 }
 
 async function generateTypes(options: CodegenOptions): Promise<void> {
-  const { schemaPath, outputDir } = options;
+  const { outputDir } = options;
   startLogProgress("Generating types...", {
     total: 3,
   });

@@ -149,7 +149,7 @@ export const oneoffContext: (args: {
   url?: string | undefined;
   adminKey?: string | undefined;
   envFile?: string | undefined;
-}) => Promise<OneoffCtx> = async (args) => {
+}) => Promise<OneoffCtx> = async () => {
   const ctx = new OneoffContextImpl();
   //   await initializeBigBrainAuth(ctx, {
   //     url: args.url,

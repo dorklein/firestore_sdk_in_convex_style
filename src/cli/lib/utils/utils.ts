@@ -14,7 +14,6 @@ export const CONVEX_DEPLOY_KEY_ENV_VAR_NAME = "CONVEX_DEPLOY_KEY";
 export const CONVEX_DEPLOYMENT_ENV_VAR_NAME = "CONVEX_DEPLOYMENT";
 export const CONVEX_SELF_HOSTED_URL_VAR_NAME = "CONVEX_SELF_HOSTED_URL";
 export const CONVEX_SELF_HOSTED_ADMIN_KEY_VAR_NAME = "CONVEX_SELF_HOSTED_ADMIN_KEY";
-const MAX_RETRIES = 6;
 
 export type ErrorData = {
   code: string;
@@ -196,12 +195,6 @@ export function deprecationCheckWarning(ctx: Context, resp: Response) {
     }
   }
 }
-
-type Team = {
-  id: number;
-  name: string;
-  slug: string;
-};
 
 /**
  * @param ctx
@@ -540,81 +533,6 @@ export function spawnAsync(
     }
     child.once("error", errorListener);
   });
-}
-
-const IDEMPOTENT_METHODS = ["GET", "HEAD", "PUT", "DELETE", "OPTIONS", "TRACE"];
-
-function retryDelay(attempt: number, _error: Error | null, _response: Response | null): number {
-  // immediate, 1s delay, 2s delay, 4s delay, etc.
-  const delay = attempt === 0 ? 1 : 2 ** (attempt - 1) * 1000;
-  const randomSum = delay * 0.2 * Math.random();
-  return delay + randomSum;
-}
-
-function deploymentFetchRetryOn(onError?: (err: any, attempt: number) => void, method?: string) {
-  const shouldRetry = function (
-    _attempt: number,
-    error: Error | null,
-    response: Response | null
-  ): { kind: "retry"; error: any } | { kind: "stop" } {
-    // Retry on network errors.
-    if (error !== null) {
-      // TODO filter out all SSL errors
-      // https://github.com/nodejs/node/blob/8a41d9b636be86350cd32847c3f89d327c4f6ff7/src/crypto/crypto_common.cc#L218-L245
-      return { kind: "retry", error: error };
-    }
-    // Retry on 404s since these can sometimes happen with newly created
-    // deployments for POSTs.
-    if (response?.status === 404) {
-      return {
-        kind: "retry",
-        error: `Received response with status ${response.status}`,
-      };
-    }
-
-    // Whatever the error code it doesn't hurt to retry idempotent requests.
-    if (response && !response.ok && method && IDEMPOTENT_METHODS.includes(method.toUpperCase())) {
-      // ...but it's a bit annoying to wait for things we know won't succced
-      if (
-        [
-          400, // Bad Request
-          401, // Unauthorized
-          402, // PaymentRequired
-          403, // Forbidden
-          405, // Method Not Allowed
-          406, // Not Acceptable
-          412, // Precondition Failed
-          413, // Payload Too Large
-          414, // URI Too Long
-          415, // Unsupported Media Type
-          416, // Range Not Satisfiable
-        ].includes(response.status)
-      ) {
-        return {
-          kind: "stop",
-        };
-      }
-      return {
-        kind: "retry",
-        error: `Received response with status ${response.status}`,
-      };
-    }
-
-    return { kind: "stop" };
-  };
-
-  return function (attempt: number, error: Error | null, response: Response | null) {
-    const result = shouldRetry(attempt, error, response);
-    if (result.kind === "retry") {
-      onError?.(result.error, attempt);
-    }
-    if (attempt >= MAX_RETRIES) {
-      // Stop retrying if we've exhausted all retries, but do this after we've
-      // called `onError` so that the caller can still log the error.
-      return false;
-    }
-    return result.kind === "retry";
-  };
 }
 
 /**

@@ -42,14 +42,14 @@ export async function doInitCodegen(
   skipIfExists: boolean,
   opts?: { dryRun?: boolean; debug?: boolean }
 ): Promise<void> {
-  await prepareForCodegen(ctx, functionsDir, opts);
+  await prepareForCodegen(ctx, functionsDir);
   await withTmpDir(async (tmpDir) => {
     await doReadmeCodegen(ctx, tmpDir, functionsDir, skipIfExists, opts);
     await doTsconfigCodegen(ctx, tmpDir, functionsDir, skipIfExists, opts);
   });
 }
 
-async function prepareForCodegen(ctx: Context, functionsDir: string, opts?: { dryRun?: boolean }) {
+async function prepareForCodegen(ctx: Context, functionsDir: string) {
   // Create the codegen dir if it doesn't already exist.
   const codegenDir = path.join(functionsDir, "_generated");
   ctx.fs.mkdir(codegenDir, { allowExisting: true, recursive: true });
@@ -63,7 +63,7 @@ export async function doCodegen(
   opts?: { dryRun?: boolean; generateCommonJSApi?: boolean; debug?: boolean }
 ) {
   const { projectConfig } = await readProjectConfig(ctx);
-  const codegenDir = await prepareForCodegen(ctx, functionsDir, opts);
+  const codegenDir = await prepareForCodegen(ctx, functionsDir);
 
   await withTmpDir(async (tmpDir) => {
     // Write files in dependency order so a watching dev server doesn't

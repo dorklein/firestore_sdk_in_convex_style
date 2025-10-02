@@ -180,42 +180,6 @@ export async function parseProjectConfig(ctx: Context, obj: any): Promise<Projec
   return obj;
 }
 
-// Parse a deployment config returned by the backend, picking out
-// the fields we care about.
-function parseBackendConfig(obj: any): {
-  functions: string;
-  authInfo?: AuthInfo[];
-  nodeVersion?: string;
-} {
-  function throwParseError(message: string) {
-    // Unexpected error
-    // eslint-disable-next-line no-restricted-syntax
-    throw new ParseError(message);
-  }
-  if (typeof obj !== "object") {
-    throwParseError("Expected an object");
-  }
-  const { functions, authInfo, nodeVersion } = obj;
-  if (typeof functions !== "string") {
-    throwParseError("Expected functions to be a string");
-  }
-
-  // Allow the `authInfo` key to be omitted
-  if ((authInfo ?? null) !== null && !isAuthInfos(authInfo)) {
-    throwParseError("Expected authInfo to be type AuthInfo[]");
-  }
-
-  if (typeof nodeVersion !== "undefined" && typeof nodeVersion !== "string") {
-    throwParseError("Expected nodeVersion to be a string");
-  }
-
-  return {
-    functions,
-    ...((authInfo ?? null) !== null ? { authInfo: authInfo } : {}),
-    ...((nodeVersion ?? null) !== null ? { nodeVersion: nodeVersion } : {}),
-  };
-}
-
 export function configName(): string {
   return "firestore-convex-style.json";
 }
