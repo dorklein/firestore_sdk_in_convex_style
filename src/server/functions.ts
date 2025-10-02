@@ -1,15 +1,5 @@
-import { Firestore } from "firebase-admin/firestore";
-import { DatabaseImpl, TransactionalDatabaseImpl } from "./database.js";
 import { SchemaDefinition } from "./schema.js";
-import { GenericDataModel } from "./data_model.js";
-import {
-  GenericQueryCtx,
-  GenericMutationCtx,
-  GenericActionCtx,
-  RegisteredQuery,
-  RegisteredMutation,
-  RegisteredAction,
-} from "./registration.js";
+import { RegisteredQuery, RegisteredMutation, RegisteredAction } from "./registration.js";
 import { ObjectType, PropertyValidators } from "../values/index.js";
 
 /**
@@ -18,15 +8,8 @@ import { ObjectType, PropertyValidators } from "../values/index.js";
  * This class executes registered queries and mutations with proper type safety
  * and transaction handling.
  */
-export class FunctionRunner<DataModel extends GenericDataModel> {
-  private db: DatabaseImpl<DataModel>;
-
-  constructor(
-    firestore: Firestore,
-    private schemaDefinition: SchemaDefinition<any, any>
-  ) {
-    this.db = new DatabaseImpl(firestore, schemaDefinition);
-  }
+export class FunctionRunner {
+  constructor(private schemaDefinition: SchemaDefinition<any, any>) {}
 
   /**
    * Execute a query function.
@@ -44,18 +27,20 @@ export class FunctionRunner<DataModel extends GenericDataModel> {
       ? this.validateArgs(query._argsValidator, args)
       : args;
 
-    // Create query context
-    const ctx: GenericQueryCtx<DataModel> = {
-      db: this.db,
-      auth: undefined, // TODO: Implement auth
-      storage: undefined, // TODO: Implement storage
-      runQuery: async (nestedQuery, ...nestedArgs) => {
-        return this.runQuery(nestedQuery as any, (nestedArgs[0] || {}) as any);
-      },
-    };
+    const result = await query.invokeQuery(JSON.stringify(validatedArgs));
+    return JSON.parse(result);
+    // // Create query context
+    // const ctx: GenericQueryCtx<DataModel> = {
+    //   db: this.db,
+    //   auth: undefined, // TODO: Implement auth
+    //   storage: undefined, // TODO: Implement storage
+    //   runQuery: async (nestedQuery, ...nestedArgs) => {
+    //     return this.runQuery(nestedQuery as any, (nestedArgs[0] || {}) as any);
+    //   },
+    // };
 
-    // Execute the handler
-    return await query._handler(ctx, validatedArgs as any);
+    // // Execute the handler
+    // return await query._handler(ctx, validatedArgs as any);
   }
 
   /**
@@ -76,38 +61,41 @@ export class FunctionRunner<DataModel extends GenericDataModel> {
     const validatedArgs = mutation._argsValidator
       ? this.validateArgs(mutation._argsValidator, args)
       : args;
+    const result = await mutation.invokeMutation(JSON.stringify(validatedArgs));
+
+    return JSON.parse(result);
 
     // Run mutation inside a Firestore transaction
-    const firestore = this.db.getFirestore();
-    return await firestore.runTransaction(async (transaction) => {
-      // Create a transactional database wrapper
-      const txDb = new TransactionalDatabaseImpl(firestore, transaction);
+    // const firestore = this.db.getFirestore();
+    // return await firestore.runTransaction(async (transaction) => {
+    //   // Create a transactional database wrapper
+    //   const txDb = new TransactionalDatabaseImpl(firestore, transaction);
 
-      // Create mutation context
-      const ctx: GenericMutationCtx<DataModel> = {
-        db: txDb as any, // Cast to work around generic constraints
-        auth: undefined, // TODO: Implement auth
-        storage: undefined, // TODO: Implement storage
-        runQuery: async (nestedQuery, ...nestedArgs) => {
-          // Queries within mutations use the transaction context
-          const queryCtx: GenericQueryCtx<DataModel> = {
-            db: txDb as any,
-            auth: undefined,
-            storage: undefined,
-            runQuery: ctx.runQuery as any,
-          };
-          return await (nestedQuery as any)._handler(queryCtx, (nestedArgs[0] || {}) as any);
-        },
-        runMutation: async (nestedMutation, ...nestedArgs) => {
-          // Nested mutations share the same transaction
-          return await (nestedMutation as any)._handler(ctx, (nestedArgs[0] || {}) as any);
-        },
-      };
+    //   // Create mutation context
+    //   const ctx: GenericMutationCtx<DataModel> = {
+    //     db: txDb as any, // Cast to work around generic constraints
+    //     auth: undefined, // TODO: Implement auth
+    //     storage: undefined, // TODO: Implement storage
+    //     runQuery: async (nestedQuery, ...nestedArgs) => {
+    //       // Queries within mutations use the transaction context
+    //       const queryCtx: GenericQueryCtx<DataModel> = {
+    //         db: txDb as any,
+    //         auth: undefined,
+    //         storage: undefined,
+    //         runQuery: ctx.runQuery as any,
+    //       };
+    //       return await (nestedQuery as any)._handler(queryCtx, (nestedArgs[0] || {}) as any);
+    //     },
+    //     runMutation: async (nestedMutation, ...nestedArgs) => {
+    //       // Nested mutations share the same transaction
+    //       return await (nestedMutation as any)._handler(ctx, (nestedArgs[0] || {}) as any);
+    //     },
+    //   };
 
-      // Execute the handler within the transaction
-      // If the handler throws, the transaction will automatically roll back
-      return await mutation._handler(ctx, validatedArgs as any);
-    });
+    //   // Execute the handler within the transaction
+    //   // If the handler throws, the transaction will automatically roll back
+    //   return await mutation._handler(ctx, validatedArgs as any);
+    // });
   }
 
   /**
@@ -129,23 +117,26 @@ export class FunctionRunner<DataModel extends GenericDataModel> {
       ? this.validateArgs(action._argsValidator, args)
       : args;
 
-    // Create action context (no direct DB access)
-    const ctx: GenericActionCtx<DataModel> = {
-      auth: undefined, // TODO: Implement auth
-      storage: undefined, // TODO: Implement storage
-      runQuery: async (nestedQuery, ...nestedArgs) => {
-        return this.runQuery(nestedQuery as any, (nestedArgs[0] || {}) as any);
-      },
-      runMutation: async (nestedMutation, ...nestedArgs) => {
-        return this.runMutation(nestedMutation as any, (nestedArgs[0] || {}) as any);
-      },
-      runAction: async (nestedAction, ...nestedArgs) => {
-        return this.runAction(nestedAction as any, (nestedArgs[0] || {}) as any);
-      },
-    };
+    const result = await action.invokeAction(JSON.stringify(validatedArgs));
+    return JSON.parse(result);
 
-    // Execute the handler
-    return await action._handler(ctx, validatedArgs as any);
+    // // Create action context (no direct DB access)
+    // const ctx: GenericActionCtx<DataModel> = {
+    //   auth: undefined, // TODO: Implement auth
+    //   storage: undefined, // TODO: Implement storage
+    //   runQuery: async (nestedQuery, ...nestedArgs) => {
+    //     return this.runQuery(nestedQuery as any, (nestedArgs[0] || {}) as any);
+    //   },
+    //   runMutation: async (nestedMutation, ...nestedArgs) => {
+    //     return this.runMutation(nestedMutation as any, (nestedArgs[0] || {}) as any);
+    //   },
+    //   runAction: async (nestedAction, ...nestedArgs) => {
+    //     return this.runAction(nestedAction as any, (nestedArgs[0] || {}) as any);
+    //   },
+    // };
+
+    // // Execute the handler
+    // return await action._handler(ctx, validatedArgs as any);
   }
 
   /**
@@ -164,12 +155,12 @@ export class FunctionRunner<DataModel extends GenericDataModel> {
     return rawArgs as ObjectType<V>;
   }
 
-  /**
-   * Get the underlying Firestore instance.
-   */
-  getFirestore(): Firestore {
-    return this.db.getFirestore();
-  }
+  // /**
+  //  * Get the underlying Firestore instance.
+  //  */
+  // getFirestore(): Firestore {
+  //   return this.db.getFirestore();
+  // }
 
   /**
    * Get the schema definition.
@@ -203,9 +194,6 @@ export class FunctionRunner<DataModel extends GenericDataModel> {
  * });
  * ```
  */
-export function createFunctionRunner<DataModel extends GenericDataModel>(
-  firestore: Firestore,
-  schemaDefinition: SchemaDefinition<any, any>
-): FunctionRunner<DataModel> {
-  return new FunctionRunner<DataModel>(firestore, schemaDefinition);
+export function createFunctionRunner(schemaDefinition: SchemaDefinition<any, any>): FunctionRunner {
+  return new FunctionRunner(schemaDefinition);
 }

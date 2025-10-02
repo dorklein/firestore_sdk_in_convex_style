@@ -1,4 +1,5 @@
 export type { Id as GenericId, JSONValue, Value, NumericValue } from "./value.js";
+export { convexToJson, jsonToConvex } from "./value.js";
 export { v, asObjectValidator } from "./validator.js";
 export type {
   AsObjectValidator,
@@ -29,3 +30,5 @@ export type {
   VOptional,
 } from "./validators.js";
 export type { Infer } from "./validator.js";
+
+export { FirestoreConvexStyleError } from "./errors.js";

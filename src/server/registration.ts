@@ -92,15 +92,15 @@ export interface GenericQueryCtx<DataModel extends GenericDataModel> {
    */
   db: GenericDatabaseReader<DataModel>;
 
-  /**
-   * Information about the currently authenticated user.
-   */
-  auth: unknown;
+  // /**
+  //  * Information about the currently authenticated user.
+  //  */
+  // auth: unknown;
 
-  /**
-   * A utility for reading files in storage.
-   */
-  storage: unknown;
+  // /**
+  //  * A utility for reading files in storage.
+  //  */
+  // storage: unknown;
 
   /**
    * Call a query function within the same transaction.
@@ -134,15 +134,15 @@ export interface GenericMutationCtx<DataModel extends GenericDataModel> {
    */
   db: GenericDatabaseWriter<DataModel>;
 
-  /**
-   * Information about the currently authenticated user.
-   */
-  auth: unknown;
+  // /**
+  //  * Information about the currently authenticated user.
+  //  */
+  // auth: unknown;
 
-  /**
-   * A utility for reading and writing files in storage.
-   */
-  storage: unknown;
+  // /**
+  //  * A utility for reading and writing files in storage.
+  //  */
+  // storage: unknown;
 
   /**
    * Call a query function within the same transaction.
@@ -184,15 +184,15 @@ export interface GenericMutationCtx<DataModel extends GenericDataModel> {
  */
 // @ts-ignore - DataModel is used for type compatibility but not directly referenced
 export interface GenericActionCtx<DataModel extends GenericDataModel> {
-  /**
-   * Information about the currently authenticated user.
-   */
-  auth: unknown;
+  // /**
+  //  * Information about the currently authenticated user.
+  //  */
+  // auth: unknown;
 
-  /**
-   * A utility for reading and writing files in storage.
-   */
-  storage: unknown;
+  // /**
+  //  * A utility for reading and writing files in storage.
+  //  */
+  // storage: unknown;
 
   /**
    * Call a query function.

@@ -61,3 +61,42 @@ export type Value =
  * @public
  */
 export type NumericValue = bigint | number;
+
+// todo
+export function convexToJson(value: any) {
+  console.warn("[convexToJson] implement me");
+  return JSON.stringify(value);
+}
+
+export function jsonToConvex(value: any) {
+  console.warn("[jsonToConvex] implement me");
+  return value;
+  return JSON.parse(value);
+}
+
+export function stringifyValueForError(value: any) {
+  return JSON.stringify(value, (_key, value) => {
+    if (value === undefined) {
+      // By default `JSON.stringify` converts undefined, functions, symbols,
+      // Infinity, and NaN to null which produces a confusing error message.
+      // We deal with `undefined` specifically because it's the most common.
+      // Ideally we'd use a pretty-printing library that prints `undefined`
+      // (no quotes), but it might not be worth the bundle size cost.
+      return "undefined";
+    }
+    if (typeof value === "bigint") {
+      // `JSON.stringify` throws on bigints by default.
+      return `${value.toString()}n`;
+    }
+    return value;
+  });
+}
+
+export function patchValueToJson(value: any) {
+  return JSON.stringify(value, (_key, value) => {
+    if (value === undefined) {
+      return "undefined";
+    }
+    return value;
+  });
+}

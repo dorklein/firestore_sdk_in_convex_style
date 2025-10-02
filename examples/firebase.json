@@ -1,0 +1,13 @@
+{
+  "$schema": "https://raw.githubusercontent.com/firebase/firebase-tools/refs/heads/master/schema/firebase-config.json",
+  "emulators": {
+    "firestore": {
+      "port": 8080
+    },
+    "ui": {
+      "enabled": true,
+      "port": 4000
+    }
+  }
+}
+

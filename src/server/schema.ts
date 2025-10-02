@@ -1,4 +1,4 @@
-import { AnyDataModel, GenericDataModel } from "./data_model.js";
+import { AnyDataModel, GenericDataModel, TableNamesInDataModel } from "./data_model.js";
 import { IdField, SystemFields } from "./system_fields.js";
 import { Expand } from "../type_utils.js";
 import {
@@ -291,3 +291,28 @@ type MaybeMakeLooseDataModel<
   DataModel extends GenericDataModel,
   StrictTableNameTypes extends boolean,
 > = StrictTableNameTypes extends true ? DataModel : Expand<DataModel & AnyDataModel>;
+
+const _systemSchema = defineSchema({
+  _scheduled_functions: defineTable({
+    name: v.string(),
+    args: v.array(v.any()),
+    scheduledTime: v.float64(),
+    completedTime: v.optional(v.float64()),
+    state: v.union(
+      v.object({ kind: v.literal("pending") }),
+      v.object({ kind: v.literal("inProgress") }),
+      v.object({ kind: v.literal("success") }),
+      v.object({ kind: v.literal("failed"), error: v.string() }),
+      v.object({ kind: v.literal("canceled") })
+    ),
+  }),
+  _storage: defineTable({
+    sha256: v.string(),
+    size: v.float64(),
+    contentType: v.optional(v.string()),
+  }),
+});
+
+export interface SystemDataModel extends DataModelFromSchemaDefinition<typeof _systemSchema> {}
+
+export type SystemTableNames = TableNamesInDataModel<SystemDataModel>;
