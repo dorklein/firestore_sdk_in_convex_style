@@ -46,16 +46,16 @@ export class QueryImpl<TableInfo extends GenericTableInfo> implements Query<Tabl
     this.collectionPath = query.collectionPath;
   }
 
-  private takeQuery(): SerializedQuery {
-    if (this.state.type !== "preparing") {
-      throw new Error(
-        "A query can only be chained once and can't be chained after iteration begins."
-      );
-    }
-    const query = this.state.query;
-    this.state = { type: "closed" };
-    return query;
-  }
+  //   private takeQuery(): SerializedQuery {
+  //     if (this.state.type !== "preparing") {
+  //       throw new Error(
+  //         "A query can only be chained once and can't be chained after iteration begins."
+  //       );
+  //     }
+  //     const query = this.state.query;
+  //     this.state = { type: "closed" };
+  //     return query;
+  //   }
 
   private startQuery(): number {
     if (this.state.type === "executing") {
