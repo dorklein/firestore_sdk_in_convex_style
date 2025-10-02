@@ -5,8 +5,8 @@ import {
   GenericTableInfo,
   NamedTableInfo,
   DocumentByName,
-} from "./data_model.ts";
-import { GenericId } from "../values/index.ts";
+} from "./data_model.js";
+import { GenericId } from "../values/index.js";
 
 export interface DatabaseReader<DataModel extends GenericDataModel> {
   get<TableName extends keyof DataModel & string>(
