@@ -14,7 +14,7 @@ import type {
   TableNamesInDataModel,
 } from "@smartbill/firestore-convex-style/server";
 import type { GenericId } from "@smartbill/firestore-convex-style/values";
-import schema from "../schema.js";
+import type schema from "../schema.js";
 
 /**
  * The names of all of your Convex tables.

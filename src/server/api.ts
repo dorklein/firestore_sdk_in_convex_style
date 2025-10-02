@@ -4,6 +4,7 @@ import {
   FunctionVisibility,
   RegisteredQuery,
   RegisteredMutation,
+  RegisteredAction,
 } from "./registration.ts";
 
 /**
@@ -71,7 +72,7 @@ export type ValidatorTypeToReturnType<T> =
   | NullToUndefinedOrNull<T>;
 
 /**
- * Extract the arguments type from a RegisteredQuery or RegisteredMutation.
+ * Extract the arguments type from a RegisteredQuery, RegisteredMutation, or RegisteredAction.
  *
  * @example
  * ```typescript
@@ -91,10 +92,12 @@ export type FunctionArgs<T> =
     ? Args
     : T extends RegisteredMutation<any, infer Args, any>
       ? Args
-      : never;
+      : T extends RegisteredAction<any, infer Args, any>
+        ? Args
+        : never;
 
 /**
- * Extract the return type from a RegisteredQuery or RegisteredMutation.
+ * Extract the return type from a RegisteredQuery, RegisteredMutation, or RegisteredAction.
  *
  * @example
  * ```typescript
@@ -116,4 +119,6 @@ export type FunctionReturn<T> =
     ? Returns
     : T extends RegisteredMutation<any, any, infer Returns>
       ? Returns
-      : never;
+      : T extends RegisteredAction<any, any, infer Returns>
+        ? Returns
+        : never;

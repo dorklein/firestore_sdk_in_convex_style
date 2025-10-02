@@ -78,17 +78,23 @@ export {
   queryGeneric,
   internalMutationGeneric,
   internalQueryGeneric,
+  actionGeneric,
+  internalActionGeneric,
 } from "./impl/registration_impl.js";
+
 export type {
   ArgsArray,
   DefaultFunctionArgs,
   FunctionVisibility,
   MutationBuilder,
   QueryBuilder,
+  ActionBuilder,
   GenericMutationCtx,
   GenericQueryCtx,
+  GenericActionCtx,
   RegisteredMutation,
   RegisteredQuery,
+  RegisteredAction,
   ReturnValueForOptionalValidator,
   ArgsArrayForOptionalValidator,
   ArgsArrayToObject,

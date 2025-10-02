@@ -5,8 +5,10 @@ import { GenericDataModel } from "./data_model.ts";
 import {
   GenericQueryCtx,
   GenericMutationCtx,
+  GenericActionCtx,
   RegisteredQuery,
   RegisteredMutation,
+  RegisteredAction,
 } from "./registration.ts";
 import { ObjectType, PropertyValidators } from "../values/index.ts";
 
@@ -106,6 +108,44 @@ export class FunctionRunner<DataModel extends GenericDataModel> {
       // If the handler throws, the transaction will automatically roll back
       return await mutation._handler(ctx, validatedArgs as any);
     });
+  }
+
+  /**
+   * Execute an action function.
+   *
+   * Actions are for side effects and cannot directly access the database.
+   * They must use ctx.runQuery and ctx.runMutation to interact with data.
+   *
+   * @param action - The registered action function
+   * @param args - The arguments to pass to the action
+   * @returns The action result
+   */
+  async runAction<Args extends Record<string, unknown>, Returns>(
+    action: RegisteredAction<any, Args, Returns>,
+    args: Args
+  ): Promise<Returns> {
+    // Validate arguments if validator is provided
+    const validatedArgs = action._argsValidator
+      ? this.validateArgs(action._argsValidator, args)
+      : args;
+
+    // Create action context (no direct DB access)
+    const ctx: GenericActionCtx<DataModel> = {
+      auth: undefined, // TODO: Implement auth
+      storage: undefined, // TODO: Implement storage
+      runQuery: async (nestedQuery, ...nestedArgs) => {
+        return this.runQuery(nestedQuery as any, (nestedArgs[0] || {}) as any);
+      },
+      runMutation: async (nestedMutation, ...nestedArgs) => {
+        return this.runMutation(nestedMutation as any, (nestedArgs[0] || {}) as any);
+      },
+      runAction: async (nestedAction, ...nestedArgs) => {
+        return this.runAction(nestedAction as any, (nestedArgs[0] || {}) as any);
+      },
+    };
+
+    // Execute the handler
+    return await action._handler(ctx, validatedArgs as any);
   }
 
   /**

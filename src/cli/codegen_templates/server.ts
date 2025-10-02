@@ -3,13 +3,15 @@ import { header } from "./common.ts";
 export function serverCodegen() {
   const serverDTS = `
     ${header(
-      "Generated utilities for implementing server-side Convex query and mutation functions."
+      "Generated utilities for implementing server-side Convex query, mutation, and action functions."
     )}
     import type {
         GenericQueryCtx,
         GenericMutationCtx,
+        GenericActionCtx,
         QueryBuilder,
         MutationBuilder,
+        ActionBuilder,
     } from "@smartbill/firestore-convex-style/server";
     import type { DataModel } from "./dataModel.js";
 
@@ -54,6 +56,28 @@ export function serverCodegen() {
     export const internalMutation: MutationBuilder<DataModel, "internal">;
 
     /**
+     * Define an action in this Convex app's public API.
+     *
+     * An action is a function that can perform side effects and cannot directly read or write to the database.
+     * Actions must use ctx.runQuery and ctx.runMutation to interact with the database.
+     *
+     * @param func - The action function. It receives an {@link ActionCtx} as its first argument.
+     * @returns The wrapped action. Include this as an \`export\` to name it and make it accessible.
+     */
+    export const action: ActionBuilder<DataModel, "public">;
+
+    /**
+     * Define an action that is only accessible from other Convex functions (but not from the client).
+     *
+     * An action is a function that can perform side effects and cannot directly read or write to the database.
+     * Actions must use ctx.runQuery and ctx.runMutation to interact with the database.
+     *
+     * @param func - The action function. It receives an {@link ActionCtx} as its first argument.
+     * @returns The wrapped action. Include this as an \`export\` to name it and make it accessible.
+     */
+    export const internalAction: ActionBuilder<DataModel, "internal">;
+
+    /**
      * A set of services for use within Convex query functions.
      *
      * The query context is passed as the first argument to any Convex query
@@ -70,17 +94,29 @@ export function serverCodegen() {
      * The mutation context is passed as the first argument to any Convex mutation
      * function run on the server.
      */
-    export type MutationCtx = GenericMutationCtx<DataModel>;`;
+    export type MutationCtx = GenericMutationCtx<DataModel>;
+
+    /**
+     * A set of services for use within Convex action functions.
+     *
+     * The action context is passed as the first argument to any Convex action
+     * function run on the server.
+     *
+     * Unlike queries and mutations, actions cannot directly access the database.
+     */
+    export type ActionCtx = GenericActionCtx<DataModel>;`;
 
   const serverJS = `
     ${header(
-      "Generated utilities for implementing server-side Convex query and mutation functions."
+      "Generated utilities for implementing server-side Convex query, mutation, and action functions."
     )}
     import {
       queryGeneric,
       mutationGeneric,
       internalMutationGeneric,
       internalQueryGeneric,
+      actionGeneric,
+      internalActionGeneric,
     } from "@smartbill/firestore-convex-style/server";
 
     /**
@@ -121,7 +157,29 @@ export function serverCodegen() {
      * @param func - The mutation function. It receives a {@link MutationCtx} as its first argument.
      * @returns The wrapped mutation. Include this as an \`export\` to name it and make it accessible.
      */
-    export const internalMutation = internalMutationGeneric;`;
+    export const internalMutation = internalMutationGeneric;
+
+    /**
+     * Define an action in this Firestore app's public API.
+     *
+     * An action is a function that can perform side effects and cannot directly read or write to the database.
+     * Actions must use ctx.runQuery and ctx.runMutation to interact with the database.
+     *
+     * @param func - The action function. It receives an {@link ActionCtx} as its first argument.
+     * @returns The wrapped action. Include this as an \`export\` to name it and make it accessible.
+     */
+    export const action = actionGeneric;
+
+    /**
+     * Define an action that is only accessible from other Firestore functions (but not from the client).
+     *
+     * An action is a function that can perform side effects and cannot directly read or write to the database.
+     * Actions must use ctx.runQuery and ctx.runMutation to interact with the database.
+     *
+     * @param func - The action function. It receives an {@link ActionCtx} as its first argument.
+     * @returns The wrapped action. Include this as an \`export\` to name it and make it accessible.
+     */
+    export const internalAction = internalActionGeneric;`;
 
   return {
     DTS: serverDTS,

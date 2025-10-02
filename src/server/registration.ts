@@ -163,6 +163,60 @@ export interface GenericMutationCtx<DataModel extends GenericDataModel> {
 }
 
 /**
+ * A set of services for use within Convex action functions.
+ *
+ * The action context is passed as the first argument to any Convex action
+ * function run on the server.
+ *
+ * Unlike queries and mutations, actions cannot directly access the database.
+ * They must use `runQuery` and `runMutation` to interact with the database.
+ *
+ * @public
+ */
+// @ts-ignore - DataModel is used for type compatibility but not directly referenced
+export interface GenericActionCtx<DataModel extends GenericDataModel> {
+  /**
+   * Information about the currently authenticated user.
+   */
+  auth: unknown;
+
+  /**
+   * A utility for reading and writing files in storage.
+   */
+  storage: unknown;
+
+  /**
+   * Call a query function.
+   *
+   * Actions cannot directly read from the database, so use this to run
+   * queries to fetch data.
+   */
+  runQuery: <Query extends FunctionReference<"query", "public" | "internal">>(
+    query: Query,
+    ...args: OptionalRestArgs<Query>
+  ) => Promise<FunctionReturnType<Query>>;
+
+  /**
+   * Call a mutation function.
+   *
+   * Actions cannot directly write to the database, so use this to run
+   * mutations to modify data.
+   */
+  runMutation: <Mutation extends FunctionReference<"mutation", "public" | "internal">>(
+    mutation: Mutation,
+    ...args: OptionalRestArgs<Mutation>
+  ) => Promise<FunctionReturnType<Mutation>>;
+
+  /**
+   * Call another action function.
+   */
+  runAction: <Action extends FunctionReference<"action", "public" | "internal">>(
+    action: Action,
+    ...args: OptionalRestArgs<Action>
+  ) => Promise<FunctionReturnType<Action>>;
+}
+
+/**
  * There are multiple syntaxes for defining a Convex function:
  * ```
  *  - query(async (ctx, args) => {...})
@@ -285,6 +339,41 @@ export type RegisteredMutation<
   _handler: (ctx: GenericMutationCtx<any>, args: Args) => Returns;
 } & VisibilityProperties<Visibility>;
 
+/**
+ * An action function that is part of this app.
+ *
+ * You can create an action by wrapping your function in
+ * {@link actionGeneric} or {@link internalActionGeneric} and exporting it.
+ *
+ * @public
+ */
+export type RegisteredAction<
+  Visibility extends FunctionVisibility,
+  Args extends DefaultFunctionArgs,
+  Returns,
+> = {
+  isConvexFunction: true;
+  isAction: true;
+
+  /** @internal */
+  invokeAction(argsStr: string): Promise<string>;
+
+  /** @internal */
+  exportArgs(): string;
+
+  /** @internal */
+  exportReturns(): string;
+
+  /** @internal */
+  _argsValidator?: PropertyValidators;
+
+  /** @internal */
+  _returnsValidator?: Validator<any, any, any>;
+
+  /** @internal */
+  _handler: (ctx: GenericActionCtx<any>, args: Args) => Returns;
+} & VisibilityProperties<Visibility>;
+
 export type QueryBuilder<
   DataModel extends GenericDataModel,
   Visibility extends FunctionVisibility,
@@ -372,6 +461,37 @@ export type MutationBuilder<
         }
       | ((ctx: GenericMutationCtx<DataModel>, ...args: OneOrZeroArgs) => ReturnValue)
   ): RegisteredMutation<Visibility, ArgsArrayToObject<OneOrZeroArgs>, ReturnValue>;
+};
+
+export type ActionBuilder<
+  DataModel extends GenericDataModel,
+  Visibility extends FunctionVisibility,
+> = {
+  <
+    ArgsValidator extends PropertyValidators | Validator<any, "required", any> | void = void,
+    ReturnsValidator extends PropertyValidators | Validator<any, "required", any> | void = void,
+    ReturnValue extends
+      ReturnValueForOptionalValidator<ReturnsValidator> = ReturnValueForOptionalValidator<ReturnsValidator>,
+    OneOrZeroArgs extends
+      ArgsArrayForOptionalValidator<ArgsValidator> = DefaultArgsForOptionalValidator<ArgsValidator>,
+  >(
+    action:
+      | {
+          /**
+           * Argument validation.
+           */
+          args?: ArgsValidator;
+          /**
+           * The return value validator.
+           */
+          returns?: ReturnsValidator;
+          /**
+           * The implementation of this function.
+           */
+          handler: (ctx: GenericActionCtx<DataModel>, ...args: OneOrZeroArgs) => ReturnValue;
+        }
+      | ((ctx: GenericActionCtx<DataModel>, ...args: OneOrZeroArgs) => ReturnValue)
+  ): RegisteredAction<Visibility, ArgsArrayToObject<OneOrZeroArgs>, ReturnValue>;
 };
 
 // Export helper type for query builder instance
