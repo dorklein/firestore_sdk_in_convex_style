@@ -56,7 +56,7 @@ export function dynamicDataModelDTS() {
   return `${header("Generated data model types.")}
 import type { DataModelFromSchemaDefinition, DocumentByName, TableNamesInDataModel } from "@smartbill/firestore-convex-style/server";
 import type { GenericId } from "@smartbill/firestore-convex-style/values";
-import schema from "../schema.js";
+import type schema from "../schema.js";
 
 /**
  * The names of all of your Convex tables.
