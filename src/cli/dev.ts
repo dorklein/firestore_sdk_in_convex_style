@@ -1,42 +1,72 @@
 #!/usr/bin/env node
 
 import { dirname, join } from "node:path";
-import { existsSync, mkdirSync, writeFileSync, watch } from "node:fs";
-import { serverCodegen } from "./codegen_templates/server.js";
-import { dynamicDataModelDTS } from "./codegen_templates/dataModel.js";
-import { format } from "prettier";
+import { existsSync, watch } from "node:fs";
+import { doCodegen, doCodegenForNewProject } from "./lib/codegen.js";
+import { oneoffContext } from "../bundler/context.js";
+import { logFinishedStep, showSpinner, startLogProgress, stopSpinner } from "../bundler/log.js";
 
 interface CodegenOptions {
   schemaPath: string;
   outputDir: string;
+  dryRun?: boolean;
+  debug?: boolean;
 }
 
 async function generateTypes(options: CodegenOptions): Promise<void> {
-  const { outputDir } = options;
+  const { schemaPath, outputDir } = options;
+  startLogProgress("Generating types...", {
+    total: 3,
+  });
 
   // Create _generated directory if it doesn't exist
+  const ctx = await oneoffContext({});
   const generatedDir = join(outputDir, "_generated");
   if (!existsSync(generatedDir)) {
-    mkdirSync(generatedDir, { recursive: true });
+    showSpinner("Creating new Firestore-Convex-Style project...");
+    await doCodegenForNewProject(ctx);
+    // mkdirSync(generatedDir, { recursive: true });
   }
 
-  // Generate dataModel.ts
-  const dataModelContent = dynamicDataModelDTS();
-  const prettierDataModelContent = await format(dataModelContent, {
-    parser: "typescript",
-  });
-  writeFileSync(join(generatedDir, "dataModel.ts"), prettierDataModelContent);
+  showSpinner("Generating types...");
+  await doCodegen(ctx, outputDir, "try", options);
 
-  // Generate server.d.ts and server.js
-  const { DTS: serverDTS, JS: serverJS } = serverCodegen();
-  const prettierServerDTS = await format(serverDTS, {
-    parser: "typescript",
-  });
-  const prettierServerJS = await format(serverJS, {
-    parser: "typescript",
-  });
-  writeFileSync(join(generatedDir, "server.d.ts"), prettierServerDTS);
-  writeFileSync(join(generatedDir, "server.js"), prettierServerJS);
+  stopSpinner();
+  logFinishedStep("Generated types successfully");
+  // // Generate dataModel.ts
+  // const dataModelContent = dynamicDataModelDTS();
+  // const prettierDataModelContent = await format(dataModelContent, {
+  //   parser: "typescript",
+  // });
+  // writeFileSync(join(generatedDir, "dataModel.ts"), prettierDataModelContent);
+
+  // // Generate server.d.ts and server.js
+  // const { DTS: serverDTS, JS: serverJS } = serverCodegen();
+  // const prettierServerDTS = await format(serverDTS, {
+  //   parser: "typescript",
+  // });
+  // const prettierServerJS = await format(serverJS, {
+  //   parser: "typescript",
+  // });
+  // writeFileSync(join(generatedDir, "server.d.ts"), prettierServerDTS);
+  // writeFileSync(join(generatedDir, "server.js"), prettierServerJS);
+
+  // // Scan for functions and actions
+  // console.log("🔍 Scanning for functions and actions...");
+  // const { functions, actions } = await scanFunctions(schemaPath);
+
+  // console.log(`📋 Found ${functions.length} functions and ${actions.length} actions`);
+
+  // // Generate api.d.ts and api.js
+  // const { DTS: apiDTS, JS: apiJS } = apiCodegen(functions, actions);
+  // const prettierApiDTS = await format(apiDTS, {
+  //   parser: "typescript",
+  // });
+  // const prettierApiJS = await format(apiJS, {
+  //   parser: "typescript",
+  // });
+  // writeFileSync(join(generatedDir, "api.d.ts"), prettierApiDTS);
+  // writeFileSync(join(generatedDir, "api.js"), prettierApiJS);
 
   console.log(`✅ Generated types in ${generatedDir}`);
 }

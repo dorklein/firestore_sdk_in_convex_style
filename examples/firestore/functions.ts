@@ -1,6 +1,6 @@
 import { v } from "@smartbill/firestore-convex-style/values";
 import type { DataModel } from "./_generated/dataModel.js";
-import { internalMutation, internalQuery } from "./_generated/server.js";
+import { internalMutation, internalQuery, mutation } from "./_generated/server.js";
 
 const CUSTOMER_NOT_FOUND_ERROR = "Customer not found";
 const USER_NOT_FOUND_ERROR = "User not found";
@@ -108,7 +108,7 @@ export const updateCustomer = internalMutation({
   },
 });
 
-export const createInvoice = internalMutation({
+export const createInvoice = mutation({
   args: {
     customerId: v.id("customers"),
     number: v.string(),

@@ -113,9 +113,10 @@ export type {
   FunctionType,
   FunctionReference,
   FunctionArgs,
-  FunctionReturn,
   OptionalRestArgs,
   FunctionReturnType,
+  ApiFromModules,
+  FilterApi,
 } from "./api.ts";
 /**
  * @internal
