@@ -5,7 +5,7 @@ export function serverCodegen() {
     ${header(
       "Generated utilities for implementing server-side Convex query and mutation functions."
     )}
-    import {
+    import type {
         GenericQueryCtx,
         GenericMutationCtx,
         QueryBuilder,
