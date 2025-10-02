@@ -19,7 +19,7 @@ import type * as usage_example from "../usage-example.js";
 import type * as usage from "../usage.js";
 
 /**
- * A utility for referencing Convex functions in your app's API.
+ * A utility for referencing firestore-convex-style functions in your app's API.
  *
  * Usage:
  * ```js

@@ -9,7 +9,7 @@
     "firestore-convex-style": "./bin/dev.js"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc --build",
     "build:cli": "node esbuild.config.js",
     "build:cli:watch": "node esbuild.config.js --watch",
     "dev": "tsc --watch",
