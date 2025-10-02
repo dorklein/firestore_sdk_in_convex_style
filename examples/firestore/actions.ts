@@ -1,12 +1,12 @@
 import { v } from "@smartbill/firestore-convex-style/values";
-import type { DataModel } from "./_generated/dataModel.js";
+import { internal } from "./_generated/api.js";
 import { internalAction, internalQuery, internalMutation } from "./_generated/server.js";
 
 // Example actions demonstrating different patterns
 
 /**
  * Send email notification action
- * 
+ *
  * This action demonstrates:
  * - Reading data via ctx.runQuery
  * - Writing data via ctx.runMutation
@@ -20,7 +20,7 @@ export const sendEmailNotification = internalAction({
   },
   handler: async (ctx, args) => {
     // 1. Read user data via query
-    const user = await ctx.runQuery(getUserById, { userId: args.userId });
+    const user = await ctx.runQuery(internal.actions.getUserById, { userId: args.userId });
     if (!user) {
       throw new Error("User not found");
     }
@@ -29,7 +29,7 @@ export const sendEmailNotification = internalAction({
     console.log(`📧 Sending email to ${user.email}:`);
     console.log(`   Subject: ${args.subject}`);
     console.log(`   Message: ${args.message}`);
-    
+
     // In a real app, you would call an email service here:
     // await emailService.send({
     //   to: user.email,
@@ -55,7 +55,7 @@ export const sendEmailNotification = internalAction({
 
 /**
  * Process webhook action
- * 
+ *
  * This action demonstrates:
  * - Processing external webhook data
  * - Conditional logic based on webhook type
@@ -102,7 +102,7 @@ export const processWebhook = internalAction({
 
 /**
  * Batch process users action
- * 
+ *
  * This action demonstrates:
  * - Reading multiple records
  * - Processing in batches
@@ -116,12 +116,12 @@ export const batchProcessUsers = internalAction({
   handler: async (ctx, args) => {
     // 1. Get all users via query
     const users = await ctx.runQuery(getAllUsers, {});
-    
+
     // 2. Process in batches
     const results = [];
     for (let i = 0; i < users.length; i += args.batchSize) {
       const batch = users.slice(i, i + args.batchSize);
-      
+
       // Process each user in the batch
       for (const user of batch) {
         try {
@@ -132,10 +132,10 @@ export const batchProcessUsers = internalAction({
           });
           results.push({ userId: user._id, success: true, result });
         } catch (error) {
-          results.push({ 
-            userId: user._id, 
-            success: false, 
-            error: error instanceof Error ? error.message : "Unknown error" 
+          results.push({
+            userId: user._id,
+            success: false,
+            error: error instanceof Error ? error.message : "Unknown error",
           });
         }
       }
@@ -143,8 +143,8 @@ export const batchProcessUsers = internalAction({
 
     return {
       totalProcessed: results.length,
-      successful: results.filter(r => r.success).length,
-      failed: results.filter(r => !r.success).length,
+      successful: results.filter((r) => r.success).length,
+      failed: results.filter((r) => !r.success).length,
       results,
     };
   },
@@ -152,7 +152,7 @@ export const batchProcessUsers = internalAction({
 
 /**
  * External API integration action
- * 
+ *
  * This action demonstrates:
  * - Calling external APIs
  * - Error handling
@@ -170,9 +170,9 @@ export const syncWithExternalAPI = internalAction({
       if (!response.ok) {
         throw new Error(`API request failed: ${response.status}`);
       }
-      
+
       const externalData = await response.json();
-      
+
       // 2. Transform and sync data based on type
       let syncResult;
       if (args.syncType === "users") {
@@ -199,7 +199,7 @@ export const syncWithExternalAPI = internalAction({
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",
       });
-      
+
       throw error;
     }
   },
@@ -218,7 +218,7 @@ async function processPaymentSuccess(ctx: any, payload: any) {
     paymentId: payload.data,
     status: "completed",
   });
-  
+
   return { processed: true, paymentId: payload.data };
 }
 

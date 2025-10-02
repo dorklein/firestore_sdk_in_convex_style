@@ -29,22 +29,6 @@ export function* walkDir(
   }
 }
 
-// Convex specific module environment.
-type ModuleEnvironment = "node" | "isolate";
-
-export interface Bundle {
-  path: string;
-  source: string;
-  sourceMap?: string | undefined;
-  environment: ModuleEnvironment;
-}
-
-export interface BundleHash {
-  path: string;
-  hash: string;
-  environment: ModuleEnvironment;
-}
-
 const ENTRY_POINT_EXTENSIONS = [
   // ESBuild js loader
   ".js",

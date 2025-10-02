@@ -12,7 +12,7 @@ import type {
   ApiFromModules,
   FilterApi,
   FunctionReference,
-} from "convex/server";
+} from "@smartbill/firestore-convex-style/server";
 import type * as actions from "../actions.js";
 import type * as functions from "../functions.js";
 import type * as usage_example from "../usage-example.js";

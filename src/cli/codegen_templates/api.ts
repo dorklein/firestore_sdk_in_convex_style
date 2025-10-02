@@ -75,7 +75,7 @@ export function moduleIdentifier(modulePath: string) {
 
 export function apiCodegen(modulePaths: string[]) {
   const apiDTS = `${header("Generated `api` utility.")}
-  import type { ApiFromModules, FilterApi, FunctionReference } from "convex/server";
+  import type { ApiFromModules, FilterApi, FunctionReference } from "@smartbill/firestore-convex-style/server";
   ${modulePaths
     .map(
       (modulePath) =>
