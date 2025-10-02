@@ -178,9 +178,10 @@ export class QueryImpl<TableInfo extends GenericTableInfo> implements Query<Tabl
       throw new Error(`Document ${doc.id} has no data`);
     }
 
+    const tableName = doc.ref.collection.name;
     return {
       ...data,
-      _id: `${this.collectionPath}|${doc.id}` as GenericId<string>,
+      _id: createId(tableName, doc.id),
       _creationTime: data._creationTime || Date.now(),
     } satisfies TableInfo["document"];
   }
@@ -351,3 +352,13 @@ export class QueryImpl<TableInfo extends GenericTableInfo> implements Query<Tabl
 //     } satisfies TableInfo["document"];
 //   }
 // }
+
+export function createId<TableName extends string>(
+  tableName: TableName,
+  docId: string
+): GenericId<TableName> {
+  if (docId.startsWith(`${tableName}|`)) {
+    return docId as GenericId<TableName>;
+  }
+  return `${tableName}|${docId}` as GenericId<TableName>;
+}

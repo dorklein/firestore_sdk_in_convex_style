@@ -12,8 +12,7 @@ initializeApp({
 });
 
 async function main() {
-  const firestore = getFirestore();
-  const runner = createFunctionRunner(firestore, schema);
+  const runner = createFunctionRunner(schema);
 
   const customerId = await runner.runMutation(createCustomer, {
     userId: "users:abc123" as Id<"users">,

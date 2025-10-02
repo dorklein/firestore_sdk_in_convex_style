@@ -67,7 +67,8 @@ export async function invokeFunction<
 >(func: F, ctx: Ctx, args: Args) {
   let result;
   try {
-    result = await Promise.resolve(func(ctx, ...args));
+    // @ts-ignore - todo: check why this type is not working
+    result = await Promise.resolve(func(ctx, args));
   } catch (thrown: unknown) {
     throw serializeConvexErrorData(thrown);
   }

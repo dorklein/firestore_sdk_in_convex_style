@@ -183,26 +183,26 @@ export interface GenericDatabaseWriter<DataModel extends GenericDataModel>
    * @internal
    */
   patch<TableName extends TableNamesInDataModel<DataModel>>(
-    table: NonUnion<TableName>,
+    table: TableName,
     id: GenericId<TableName>,
     value: PatchValue<DocumentByName<DataModel, TableName>>
   ): Promise<void>;
 
-  /**
-   * Patch an existing document, shallow merging it with the given partial
-   * document.
-   *
-   * New fields are added. Existing fields are overwritten. Fields set to
-   * `undefined` are removed.
-   *
-   * @param id - The {@link values.GenericId} of the document to patch.
-   * @param value - The partial {@link GenericDocument} to merge into the specified document. If this new value
-   * specifies system fields like `_id`, they must match the document's existing field values.
-   */
-  patch<TableName extends TableNamesInDataModel<DataModel>>(
-    id: GenericId<TableName>,
-    value: PatchValue<DocumentByName<DataModel, TableName>>
-  ): Promise<void>;
+  // /**
+  //  * Patch an existing document, shallow merging it with the given partial
+  //  * document.
+  //  *
+  //  * New fields are added. Existing fields are overwritten. Fields set to
+  //  * `undefined` are removed.
+  //  *
+  //  * @param id - The {@link values.GenericId} of the document to patch.
+  //  * @param value - The partial {@link GenericDocument} to merge into the specified document. If this new value
+  //  * specifies system fields like `_id`, they must match the document's existing field values.
+  //  */
+  // patch<TableName extends TableNamesInDataModel<DataModel>>(
+  //   id: GenericId<TableName>,
+  //   value: PatchValue<DocumentByName<DataModel, TableName>>
+  // ): Promise<void>;
 
   /**
    * Replace the value of an existing document, overwriting its old value.
@@ -215,22 +215,22 @@ export interface GenericDatabaseWriter<DataModel extends GenericDataModel>
    * @internal
    */
   replace<TableName extends TableNamesInDataModel<DataModel>>(
-    table: NonUnion<TableName>,
+    table: TableName,
     id: GenericId<TableName>,
     value: WithOptionalSystemFields<DocumentByName<DataModel, TableName>>
   ): Promise<void>;
 
-  /**
-   * Replace the value of an existing document, overwriting its old value.
-   *
-   * @param id - The {@link values.GenericId} of the document to replace.
-   * @param value - The new {@link GenericDocument} for the document. This value can omit the system fields,
-   * and the database will fill them in.
-   */
-  replace<TableName extends TableNamesInDataModel<DataModel>>(
-    id: GenericId<TableName>,
-    value: WithOptionalSystemFields<DocumentByName<DataModel, TableName>>
-  ): Promise<void>;
+  // /**
+  //  * Replace the value of an existing document, overwriting its old value.
+  //  *
+  //  * @param id - The {@link values.GenericId} of the document to replace.
+  //  * @param value - The new {@link GenericDocument} for the document. This value can omit the system fields,
+  //  * and the database will fill them in.
+  //  */
+  // replace<TableName extends TableNamesInDataModel<DataModel>>(
+  //   id: GenericId<TableName>,
+  //   value: WithOptionalSystemFields<DocumentByName<DataModel, TableName>>
+  // ): Promise<void>;
 
   /**
    * Delete an existing document.
@@ -245,12 +245,12 @@ export interface GenericDatabaseWriter<DataModel extends GenericDataModel>
     id: GenericId<TableName>
   ): Promise<void>;
 
-  /**
-   * Delete an existing document.
-   *
-   * @param id - The {@link values.GenericId} of the document to remove.
-   */
-  delete(id: GenericId<TableNamesInDataModel<DataModel>>): Promise<void>;
+  // /**
+  //  * Delete an existing document.
+  //  *
+  //  * @param id - The {@link values.GenericId} of the document to remove.
+  //  */
+  // delete(id: GenericId<TableNamesInDataModel<DataModel>>): Promise<void>;
 }
 
 /**

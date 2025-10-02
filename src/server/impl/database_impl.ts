@@ -1,22 +1,33 @@
-import { convexToJson, GenericId, jsonToConvex, Value } from "../../values/index.js";
-import { performAsyncSyscall, performSyscall } from "./syscall.js";
+import { GenericId } from "../../values/index.js";
 import {
   GenericDatabaseReader,
   GenericDatabaseReaderWithTable,
   GenericDatabaseWriter,
   GenericDatabaseWriterWithTable,
 } from "../database.js";
-import { QueryImpl } from "./query_impl.js";
+import { createId, QueryImpl } from "./query_impl.js";
 import { GenericDataModel, GenericDocument } from "../data_model.js";
 import { validateArg } from "./validate.js";
-import { version } from "../../version.js";
-import { patchValueToJson } from "../../values/value.js";
-import { Firestore, getFirestore } from "firebase-admin/firestore";
+import { DocumentSnapshot, Firestore, getFirestore } from "firebase-admin/firestore";
 
 /** in the future, we might handle this with projectId etc... */
 export const getDefaultDB = () => getFirestore();
 
-async function get(table: string | undefined, id: GenericId<string>, isSystem: boolean) {
+function documentToData(doc: DocumentSnapshot): GenericDocument {
+  const data = doc.data();
+  if (!data) {
+    throw new Error(`Document ${doc.id} has no data`);
+  }
+
+  const tableName = doc.ref.collection.name;
+  return {
+    ...data,
+    _id: createId(tableName, doc.id),
+    _creationTime: data._creationTime || Date.now(),
+  } satisfies GenericDocument;
+}
+
+async function get(db: Firestore, table: string, id: GenericId<string>) {
   // If the user doesn’t provide any arguments, we use the new signature in the error message.
   // We don’t do argument validation on the table argument since it’s not provided when using the old signature.
   validateArg(id, 1, "get", "id");
@@ -25,15 +36,18 @@ async function get(table: string | undefined, id: GenericId<string>, isSystem: b
       `Invalid argument \`id\` for \`db.get\`, expected string but got '${typeof id}': ${id as any}`
     );
   }
-  const args = {
-    id: convexToJson(id),
-    isSystem,
-    version,
-    table,
-  };
-  const syscallJSON = await performAsyncSyscall("1.0/get", args);
+  //   const args = {
+  //     id: convexToJson(id),
+  //     isSystem,
+  //     version,
+  //     table,
+  //   };
+  //   const syscallJSON = await performAsyncSyscall("1.0/get", args);
 
-  return jsonToConvex(syscallJSON) as GenericDocument;
+  const snapshot = await db.collection(table).doc(id).get();
+  return documentToData(snapshot);
+
+  //   return jsonToConvex(syscallJSON) as GenericDocument;
 }
 
 export function setupReader(db: Firestore): GenericDatabaseReader<GenericDataModel> {
@@ -41,10 +55,9 @@ export function setupReader(db: Firestore): GenericDatabaseReader<GenericDataMod
     isSystem = false
   ): GenericDatabaseReader<GenericDataModel> & GenericDatabaseReaderWithTable<GenericDataModel> => {
     return {
-      get: async (arg0: any, arg1?: any) => {
-        return arg1 !== undefined
-          ? await get(arg0, arg1, isSystem)
-          : await get(undefined, arg0, isSystem);
+      get: async (id: GenericId<string>) => {
+        const table = id.split("|")[0];
+        return await get(db, table, id);
       },
       query: (tableName: string) => {
         return new TableReader(tableName, isSystem, db).query();
@@ -63,12 +76,13 @@ export function setupReader(db: Firestore): GenericDatabaseReader<GenericDataMod
             }normalizeId().`
           );
         }
-        const syscallJSON = performSyscall("1.0/db/normalizeId", {
-          table: tableName,
-          idString: id,
-        });
-        const syscallResult = jsonToConvex(syscallJSON) as any;
-        return syscallResult.id;
+        throw new Error("Not implemented");
+        // const syscallJSON = performSyscall("1.0/db/normalizeId", {
+        //   table: tableName,
+        //   idString: id,
+        // });
+        // const syscallResult = jsonToConvex(syscallJSON) as any;
+        // return syscallResult.id;
       },
       // We set the system reader on the next line
       system: null as any,
@@ -83,46 +97,72 @@ export function setupReader(db: Firestore): GenericDatabaseReader<GenericDataMod
   return r;
 }
 
-async function insert(tableName: string, value: any) {
+async function insert<TableName extends string>(
+  db: Firestore,
+  tableName: TableName,
+  value: any
+): Promise<GenericId<TableName>> {
   if (tableName.startsWith("_")) {
     throw new Error("System tables (prefixed with `_`) are read-only.");
   }
   validateArg(tableName, 1, "insert", "table");
   validateArg(value, 2, "insert", "value");
-  const syscallJSON = await performAsyncSyscall("1.0/insert", {
-    table: tableName,
-    value: convexToJson(value),
-  });
-  const syscallResult = jsonToConvex(syscallJSON) as any;
-  return syscallResult._id;
+  //   const syscallJSON = await performAsyncSyscall("1.0/insert", {
+  //     table: tableName,
+  //     value: convexToJson(value),
+  //   });
+  //   const syscallResult = jsonToConvex(syscallJSON) as any;
+  //   return syscallResult._id;
+
+  const baseId = db.collection(tableName).doc().id;
+  const docId = createId(tableName, baseId);
+  const dataWithSystemFields = {
+    ...value,
+    _id: docId,
+    _creationTime: Date.now(),
+  } satisfies GenericDocument;
+
+  await db.collection(tableName).doc(docId).set(dataWithSystemFields);
+  return docId;
 }
 
-async function patch(table: string | undefined, id: any, value: any) {
+async function patch<TableName extends string>(
+  db: Firestore,
+  table: TableName,
+  id: GenericId<TableName>,
+  value: any
+) {
   validateArg(id, 1, "patch", "id");
   validateArg(value, 2, "patch", "value");
-  await performAsyncSyscall("1.0/shallowMerge", {
-    id: convexToJson(id),
-    value: patchValueToJson(value as Value),
-    table,
-  });
+  //   await performAsyncSyscall("1.0/shallowMerge", {
+  //     id: convexToJson(id),
+  //     value: patchValueToJson(value as Value),
+  //     table,
+  //   });
+
+  await db.collection(table).doc(id).update(value);
 }
 
-async function replace(table: string | undefined, id: any, value: any) {
+async function replace(db: Firestore, table: string, id: GenericId<string>, value: any) {
   validateArg(id, 1, "replace", "id");
   validateArg(value, 2, "replace", "value");
-  await performAsyncSyscall("1.0/replace", {
-    id: convexToJson(id),
-    value: convexToJson(value),
-    table,
-  });
+  //   await performAsyncSyscall("1.0/replace", {
+  //     id: convexToJson(id),
+  //     value: convexToJson(value),
+  //     table,
+  //   });
+
+  await db.collection(table).doc(id).set(value);
 }
 
-async function delete_(table: string | undefined, id: any) {
+async function delete_(db: Firestore, table: string, id: GenericId<string>) {
   validateArg(id, 1, "delete", "id");
-  await performAsyncSyscall("1.0/remove", {
-    id: convexToJson(id),
-    table,
-  });
+  //   await performAsyncSyscall("1.0/remove", {
+  //     id: convexToJson(id),
+  //     table,
+  //   });
+
+  await db.collection(table).doc(id).delete();
 }
 
 export function setupWriter(
@@ -135,20 +175,16 @@ export function setupWriter(
     normalizeId: reader.normalizeId,
     system: reader.system as any,
     insert: async (table, value) => {
-      return await insert(table, value);
+      return await insert(db, table, value);
     },
-    patch: async (arg0: any, arg1: any, arg2?: any) => {
-      return arg2 !== undefined
-        ? await patch(arg0, arg1, arg2)
-        : await patch(undefined, arg0, arg1);
+    patch: async (table, id, value) => {
+      return await patch(db, table, id, value);
     },
-    replace: async (arg0: any, arg1: any, arg2?: any) => {
-      return arg2 !== undefined
-        ? await replace(arg0, arg1, arg2)
-        : await replace(undefined, arg0, arg1);
+    replace: async (table, id, value) => {
+      return await replace(db, table, id, value);
     },
-    delete: async (arg0: any, arg1?: any) => {
-      return arg1 !== undefined ? await delete_(arg0, arg1) : await delete_(undefined, arg0);
+    delete: async (table, id) => {
+      return await delete_(db, table, id);
     },
     table: (tableName) => {
       return new TableWriter(tableName, false, db);
@@ -163,7 +199,7 @@ class TableReader {
   ) {}
 
   async get(id: GenericId<string>) {
-    return get(this.tableName, id, this.isSystem);
+    return get(this.db, this.tableName, id);
   }
 
   query() {
@@ -181,16 +217,16 @@ class TableReader {
 
 class TableWriter extends TableReader {
   async insert(value: any) {
-    return insert(this.tableName, value);
+    return insert(this.db, this.tableName, value);
   }
   async patch(id: any, value: any) {
-    return patch(this.tableName, id, value);
+    return patch(this.db, this.tableName, id, value);
   }
   async replace(id: any, value: any) {
-    return replace(this.tableName, id, value);
+    return replace(this.db, this.tableName, id, value);
   }
   async delete(id: any) {
-    return delete_(this.tableName, id);
+    return delete_(this.db, this.tableName, id);
   }
 }
 
