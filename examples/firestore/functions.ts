@@ -116,7 +116,7 @@ export const updateCustomer = internalMutation({
       Object.entries(updates).filter(([_, v]) => v !== undefined)
     );
 
-    await ctx.db.patch(customerId, cleanUpdates as any);
+    await ctx.db.patch("customers", customerId, cleanUpdates as any);
   },
 });
 
@@ -171,7 +171,7 @@ export const updateInvoiceStatus = internalMutation({
     ),
   },
   handler: async (ctx, args) => {
-    await ctx.db.patch(args.invoiceId, {
+    await ctx.db.patch("invoices", args.invoiceId, {
       status: args.status,
     });
   },
@@ -196,6 +196,6 @@ export const deleteCustomer = internalMutation({
       throw new Error("Cannot delete customer with existing invoices");
     }
 
-    await ctx.db.delete(args.customerId);
+    await ctx.db.delete("customers", args.customerId);
   },
 });

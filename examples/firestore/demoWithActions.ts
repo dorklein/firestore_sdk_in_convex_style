@@ -1,6 +1,7 @@
 import { v } from "@smartbill/firestore-convex-style/values";
 import { internalAction, internalQuery, internalMutation } from "./_generated/server";
 import { internal } from "./_generated/api";
+import { createCustomer, getCustomerById } from "./functions";
 
 // Example actions demonstrating different patterns
 
@@ -35,16 +36,16 @@ export const processUserAction = internalAction({
     // Inspect the function reference
 
     // Simulate user processing
-    const customerId = await ctx.runMutation(internal.functions.createCustomer, {
+    const customerId = await ctx.runMutation(createCustomer, {
       userId: args.userId,
       name: args.operation,
     });
     console.log({ customerId });
-    const customer = await ctx.runQuery(internal.functions.getCustomerById, {
+    const customer = await ctx.runQuery(getCustomerById, {
       customerId: args.customerId,
     });
     console.log({ customer });
-    await ctx.runAction(internal.demoWithActions.tryProcessUserAction, {
+    await ctx.runAction(tryProcessUserAction, {
       userId: args.userId,
       customerId: args.customerId,
       operation: args.operation,

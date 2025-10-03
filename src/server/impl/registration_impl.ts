@@ -14,6 +14,8 @@ import {
   GenericActionCtx,
   GenericMutationCtx,
   GenericQueryCtx,
+  isRegisteredMutation,
+  isRegisteredQuery,
   MutationBuilder,
   QueryBuilder,
   RegisteredAction,
@@ -31,13 +33,6 @@ import { QueryImpl } from "./query_impl.js";
 // } from "./storage_impl.js";
 import { parseArgs } from "../../common/index.js";
 import { asObjectValidator } from "../../values/validator.js";
-import { getFunctionAddress } from "../components/paths.js";
-import {
-  invokeFunctionByType,
-  registerAction,
-  registerMutation,
-  registerQuery,
-} from "../registry.js";
 
 async function invokeMutation<
   F extends (ctx: GenericMutationCtx<GenericDataModel>, ...args: any) => any,
@@ -191,8 +186,6 @@ export const mutationGeneric: MutationBuilder<any, "public"> = ((
   func.exportReturns = exportReturns(functionDefinition);
   func._handler = handler;
 
-  registerMutation(func, "public");
-
   return func;
 }) as MutationBuilder<any, "public">;
 
@@ -229,8 +222,6 @@ export const internalMutationGeneric: MutationBuilder<any, "internal"> = ((
   func.exportArgs = exportArgs(functionDefinition);
   func.exportReturns = exportReturns(functionDefinition);
   func._handler = handler;
-
-  registerMutation(func, "internal");
 
   return func;
 }) as MutationBuilder<any, "internal">;
@@ -282,7 +273,6 @@ export const queryGeneric: QueryBuilder<any, "public"> = ((
   func.exportReturns = exportReturns(functionDefinition);
   func._handler = handler;
 
-  registerQuery(func, "public");
   return func;
 }) as QueryBuilder<any, "public">;
 
@@ -316,7 +306,6 @@ export const internalQueryGeneric: QueryBuilder<any, "internal"> = ((
   func.exportReturns = exportReturns(functionDefinition);
   func._handler = handler;
 
-  registerQuery(func, "internal");
   return func;
 }) as QueryBuilder<any, "internal">;
 
@@ -364,7 +353,6 @@ export const actionGeneric: ActionBuilder<any, "public"> = ((
   func.exportReturns = exportReturns(functionDefinition);
   func._handler = handler;
 
-  registerAction(func, "public");
   return func;
 }) as ActionBuilder<any, "public">;
 
@@ -400,7 +388,6 @@ export const internalActionGeneric: ActionBuilder<any, "internal"> = ((
   func.exportReturns = exportReturns(functionDefinition);
   func._handler = handler;
 
-  registerAction(func, "internal");
   return func;
 }) as ActionBuilder<any, "internal">;
 
@@ -449,14 +436,21 @@ async function runUdf(
     | RegisteredMutation<"public" | "internal", any, any>,
   args?: Record<string, Value>
 ): Promise<any> {
+  console.log("runUdf", udfType, f, args);
   const queryArgs = parseArgs(args);
-  const syscallArgs = {
-    udfType,
-    args: convexToJson(queryArgs),
-    ...getFunctionAddress(f),
-  };
-  const result = await invokeFunctionByType(f, syscallArgs.args);
+  const argsStr = JSON.stringify(queryArgs);
+  // const syscallArgs = {
+  //   udfType,
+  //   args: convexToJson(queryArgs),
+  //   ...getFunctionAddress(f),
+  // };
+  if (isRegisteredQuery(f)) {
+    return f.invokeQuery(argsStr);
+  } else if (isRegisteredMutation(f)) {
+    return f.invokeMutation(argsStr);
+  }
+  // const result = await f(f, syscallArgs.args);
   // const result = await registeredFunc.invokeMutation(argsStr);
   // const result = await performAsyncSyscall("1.0/runUdf", syscallArgs);
-  return jsonToConvex(result);
+  // return jsonToConvex(result);
 }

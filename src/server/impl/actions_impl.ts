@@ -2,7 +2,6 @@ import { convexToJson, jsonToConvex, Value } from "../../values/index.js";
 import { version } from "../../version.js";
 import { parseArgs } from "../../common/index.js";
 import { getFunctionAddress } from "../components/paths.js";
-import { invokeFunctionByType } from "../registry.js";
 import { RegisteredAction, RegisteredMutation, RegisteredQuery } from "../registration.js";
 
 function syscallArgs(requestId: string, functionReference: any, args?: Record<string, Value>) {
@@ -74,7 +73,9 @@ export function setupActionCalls() {
 
       const _syscallArgs = syscallArgs(requestId, query, args);
 
-      const result = await invokeFunctionByType(query, _syscallArgs.args);
+      const result = await query.invokeQuery(_syscallArgs.args);
+
+      // const result = await invokeFunctionByType(query, _syscallArgs.args);
       return jsonToConvex(result);
     },
     runMutation: async (
@@ -86,7 +87,8 @@ export function setupActionCalls() {
       //     syscallArgs(requestId, mutation, args)
       //   );
       const _syscallArgs = syscallArgs(requestId, mutation, args);
-      const result = await invokeFunctionByType(mutation, _syscallArgs.args);
+      const result = await mutation.invokeMutation(_syscallArgs.args);
+      // const result = await invokeFunctionByType(mutation, _syscallArgs.args);
       return jsonToConvex(result);
     },
     runAction: async (
@@ -99,7 +101,8 @@ export function setupActionCalls() {
       //   );
 
       const _syscallArgs = syscallArgs(requestId, action, args);
-      const result = await invokeFunctionByType(action, _syscallArgs.args);
+      const result = await action.invokeAction(_syscallArgs.args);
+      // const result = await invokeFunctionByType(action, _syscallArgs.args);
       return jsonToConvex(result);
     },
   };
