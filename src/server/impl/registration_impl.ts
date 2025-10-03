@@ -2,7 +2,6 @@ import {
   convexToJson,
   FirestoreConvexStyleError,
   GenericValidator,
-  jsonToConvex,
   v,
   Validator,
 } from "../../values/index.js";
@@ -26,8 +25,7 @@ import { asObjectValidator } from "../../values/validator.js";
 
 async function invokeMutation<
   F extends (ctx: GenericMutationCtx<GenericDataModel>, ...args: any) => any,
->(func: F, argsStr: string) {
-  const args = jsonToConvex(JSON.parse(argsStr));
+>(func: F, args: Record<string, unknown>) {
   const mutationCtx = {
     db: setupWriter(getDefaultDB()),
     // auth: setupAuth(requestId),
@@ -171,7 +169,7 @@ export const mutationGeneric: MutationBuilder<any, "public"> = ((
   func.isConvexFunction = true;
   func.isMutation = true;
   func.isPublic = true;
-  func.invokeMutation = (argsStr) => invokeMutation(handler, argsStr);
+  func.invokeMutation = (args) => invokeMutation(handler, args);
   func.exportArgs = exportArgs(functionDefinition);
   func.exportReturns = exportReturns(functionDefinition);
   func._handler = handler;
@@ -208,7 +206,7 @@ export const internalMutationGeneric: MutationBuilder<any, "internal"> = ((
   func.isConvexFunction = true;
   func.isMutation = true;
   func.isInternal = true;
-  func.invokeMutation = (argsStr) => invokeMutation(handler, argsStr);
+  func.invokeMutation = (args) => invokeMutation(handler, args);
   func.exportArgs = exportArgs(functionDefinition);
   func.exportReturns = exportReturns(functionDefinition);
   func._handler = handler;
@@ -218,9 +216,8 @@ export const internalMutationGeneric: MutationBuilder<any, "internal"> = ((
 
 async function invokeQuery<F extends (ctx: GenericQueryCtx<GenericDataModel>, ...args: any) => any>(
   func: F,
-  argsStr: string
+  args: Record<string, unknown>
 ) {
-  const args = jsonToConvex(JSON.parse(argsStr));
   const queryCtx = {
     db: setupReader(getDefaultDB()),
     // auth: setupAuth(requestId),
@@ -258,7 +255,7 @@ export const queryGeneric: QueryBuilder<any, "public"> = ((
   func.isConvexFunction = true;
   func.isQuery = true;
   func.isPublic = true;
-  func.invokeQuery = (argsStr) => invokeQuery(handler, argsStr);
+  func.invokeQuery = (args) => invokeQuery(handler, args);
   func.exportArgs = exportArgs(functionDefinition);
   func.exportReturns = exportReturns(functionDefinition);
   func._handler = handler;
@@ -291,7 +288,7 @@ export const internalQueryGeneric: QueryBuilder<any, "internal"> = ((
   func.isConvexFunction = true;
   func.isQuery = true;
   func.isInternal = true;
-  func.invokeQuery = (argsStr) => invokeQuery(handler as any, argsStr);
+  func.invokeQuery = (args) => invokeQuery(handler, args);
   func.exportArgs = exportArgs(functionDefinition);
   func.exportReturns = exportReturns(functionDefinition);
   func._handler = handler;
@@ -301,8 +298,7 @@ export const internalQueryGeneric: QueryBuilder<any, "internal"> = ((
 
 async function invokeAction<
   F extends (ctx: GenericActionCtx<GenericDataModel>, ...args: any) => any,
->(func: F, argsStr: string) {
-  const args = jsonToConvex(JSON.parse(argsStr));
+>(func: F, args: Record<string, unknown>) {
   const calls = setupActionCalls();
   const ctx = {
     ...calls,
@@ -338,7 +334,7 @@ export const actionGeneric: ActionBuilder<any, "public"> = ((
   func.isConvexFunction = true;
   func.isAction = true;
   func.isPublic = true;
-  func.invokeAction = (argsStr) => invokeAction(handler, argsStr);
+  func.invokeAction = (args) => invokeAction(handler, args);
   func.exportArgs = exportArgs(functionDefinition);
   func.exportReturns = exportReturns(functionDefinition);
   func._handler = handler;
