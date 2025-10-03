@@ -7,6 +7,7 @@ import {
 import {
   AnyFunctionReference,
   FunctionReference,
+  getFunctionName,
   isActionFunctionReference,
   isMutationFunctionReference,
   isQueryFunctionReference,
@@ -16,18 +17,10 @@ import {
 // I want to have a local registary in memory to point functionReferences to the actual function
 // this will allow us to have a local registry of functions that can be used to call functions directly
 // without going through the syscall layer
-const mutationRegistry = new Map<
-  FunctionReference<"mutation", "public" | "internal">,
-  RegisteredMutation<"public" | "internal", any, any>
->();
-const queryRegistry = new Map<
-  FunctionReference<"query", "public" | "internal">,
-  RegisteredQuery<"public" | "internal", any, any>
->();
-const actionRegistry = new Map<
-  FunctionReference<"action", "public" | "internal">,
-  RegisteredAction<"public" | "internal", any, any>
->();
+/// SAVE by address: string -> registeredFunction
+const mutationRegistry = new Map<string, RegisteredMutation<"public" | "internal", any, any>>();
+const queryRegistry = new Map<string, RegisteredQuery<"public" | "internal", any, any>>();
+const actionRegistry = new Map<string, RegisteredAction<"public" | "internal", any, any>>();
 
 export function registerMutation<V extends FunctionVisibility>(
   registeredFunc: RegisteredMutation<V, any, any>,
@@ -41,7 +34,9 @@ export function registerMutation<V extends FunctionVisibility>(
     _componentPath: undefined,
   } satisfies FunctionReference<"mutation", V>;
 
-  mutationRegistry.set(funcRef, registeredFunc);
+  const funcName = getFunctionName(funcRef);
+
+  mutationRegistry.set(funcName, registeredFunc);
   console.log("Registered mutation", funcRef);
 }
 
@@ -57,7 +52,9 @@ export function registerQuery<V extends FunctionVisibility>(
     _componentPath: undefined,
   } satisfies FunctionReference<"query", V>;
 
-  queryRegistry.set(funcRef, registeredFunc);
+  const funcName = getFunctionName(funcRef);
+
+  queryRegistry.set(funcName, registeredFunc);
   console.log("Registered query", funcRef);
 }
 
@@ -73,23 +70,25 @@ export function registerAction<V extends FunctionVisibility>(
     _componentPath: undefined,
   } satisfies FunctionReference<"action", V>;
 
-  actionRegistry.set(funcRef, registeredFunc);
+  const funcName = getFunctionName(funcRef);
+
+  actionRegistry.set(funcName, registeredFunc);
   console.log("Registered action", funcRef);
 }
 
 export function getMutation(func: FunctionReference<"mutation", "public" | "internal">) {
   console.log("Getting mutation", func);
-  return mutationRegistry.get(func);
+  return mutationRegistry.get(getFunctionName(func));
 }
 
 export function getQuery(func: FunctionReference<"query", "public" | "internal">) {
   console.log("Getting query", func);
-  return queryRegistry.get(func);
+  return queryRegistry.get(getFunctionName(func));
 }
 
 export function getAction(func: FunctionReference<"action", "public" | "internal">) {
   console.log("Getting action", func);
-  return actionRegistry.get(func);
+  return actionRegistry.get(getFunctionName(func));
 }
 
 export async function invokeFunctionByType(
