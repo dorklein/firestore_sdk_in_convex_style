@@ -53,6 +53,7 @@
     "valibot": "^0.42.0"
   },
   "devDependencies": {
+    "oxc-parser": "^0.93.0",
     "@firebase/rules-unit-testing": "^3.0.0",
     "@types/deep-equal": "^1.0.4",
     "@types/node": "^20.0.0",

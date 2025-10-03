@@ -9,7 +9,5 @@
  */
 
 import type { RegisteredFunc } from "@smartbill/firestore-convex-style/server";
-import * as demoWithActions from "../demoWithActions.js";
-import * as functions from "../functions.js";
 
 export const apiRegistry: Record<string, RegisteredFunc> = {};

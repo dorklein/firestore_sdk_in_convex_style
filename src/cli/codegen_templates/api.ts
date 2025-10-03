@@ -119,36 +119,3 @@ export function apiCodegen(modulePaths: string[]) {
     JS: apiJS,
   };
 }
-
-export function apiRegistryCodegen(modulePaths: string[], functionNames: Map<string, string[]>) {
-  const registryGroup = modulePaths.map((modulePath) => {
-    const names = functionNames.get(modulePath);
-    if (!names) {
-      // throw new Error(`No function names found for module ${modulePath}`);
-      return [];
-    }
-
-    const cleanedModuleIdentifier = moduleIdentifier(modulePath);
-
-    const registryForModule = names.map((name) => {
-      return `"${cleanedModuleIdentifier}:${name}": ${cleanedModuleIdentifier}.${name},`;
-    });
-    return registryForModule;
-  });
-
-  const flatRegistry = registryGroup.flat();
-
-  return `${header("Generated `apiRegistry` utility.")}
-  import type { RegisteredFunc } from "@smartbill/firestore-convex-style/server";
-  ${modulePaths
-    .map(
-      (modulePath) =>
-        `import * as ${moduleIdentifier(modulePath)} from "../${importPath(modulePath)}.js";`
-    )
-    .join("\n")}
-    
-  export const apiRegistry: Record<string, RegisteredFunc> = {
-    ${flatRegistry.join("\n")}
-  };
-  `;
-}

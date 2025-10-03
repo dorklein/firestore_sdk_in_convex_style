@@ -1,6 +1,6 @@
 import path from "path";
 import chalk from "chalk";
-import { pathToFileURL } from "url";
+import { parseSync } from "oxc-parser";
 
 import { Filesystem, consistentPathSort } from "./fs.js";
 import { Context } from "./context.js";
@@ -235,18 +235,14 @@ export async function getExportedConvexFunctions(
 ): Promise<Map<string, string[]>> {
   const absModulePaths = await entryPoints(ctx, dir);
   const functionNames: Map<string, string[]> = new Map();
-  console.log("absModulePaths", absModulePaths);
 
   for (const modulePath of absModulePaths) {
     try {
-      const module = await loadModule(modulePath);
-      console.log("modulePath", modulePath);
-      console.log("module", module);
-      throw new Error("test");
-      const moduleExports = extractConvexFunctionNames(module, modulePath, dir);
-      functionNames.set(modulePath, moduleExports);
+      const moduleExports = extractConvexFunctionNamesFromAST(modulePath, dir, ctx);
+      const relativePath = path.relative(dir, modulePath);
+      functionNames.set(relativePath, moduleExports);
     } catch (error) {
-      logVerbose(chalk.yellow(`Failed to load module ${modulePath}: ${error}`));
+      logVerbose(chalk.yellow(`Failed to parse module ${modulePath}: ${error}`));
     }
   }
 
@@ -262,11 +258,10 @@ export async function getExportedFunctionRefs(
 
   for (const modulePath of absModulePaths) {
     try {
-      const module = await loadModule(modulePath);
-      const moduleFunctionRefs = extractFunctionReferences(module, modulePath, dir);
+      const moduleFunctionRefs = extractFunctionReferencesFromAST(modulePath, dir, ctx);
       functionRefs.push(...moduleFunctionRefs);
     } catch (error) {
-      logVerbose(chalk.yellow(`Failed to load module ${modulePath}: ${error}`));
+      logVerbose(chalk.yellow(`Failed to parse module ${modulePath}: ${error}`));
     }
   }
 
@@ -282,11 +277,14 @@ export async function getExportedRegisteredConvexFunctions(
 
   for (const modulePath of absModulePaths) {
     try {
-      const module = await loadModule(modulePath);
-      const moduleRegisteredFunctions = extractRegisteredConvexFunctions(module);
+      const moduleRegisteredFunctions = extractRegisteredConvexFunctionsFromAST(
+        modulePath,
+        dir,
+        ctx
+      );
       registeredFunctions.push(...moduleRegisteredFunctions);
     } catch (error) {
-      logVerbose(chalk.yellow(`Failed to load module ${modulePath}: ${error}`));
+      logVerbose(chalk.yellow(`Failed to parse module ${modulePath}: ${error}`));
     }
   }
 
@@ -294,95 +292,204 @@ export async function getExportedRegisteredConvexFunctions(
 }
 
 /**
- * Dynamically loads a module using dynamic import
+ * Extracts Convex function names from a module using AST parsing
  */
-async function loadModule(modulePath: string): Promise<any> {
-  const fileUrl = pathToFileURL(modulePath).href;
-  const module = await import(fileUrl);
-  return module;
-}
+function extractConvexFunctionNamesFromAST(
+  modulePath: string,
+  baseDir: string,
+  ctx: Context
+): string[] {
+  const source = ctx.fs.readUtf8File(modulePath);
+  const ast = parseSync(modulePath, source, {
+    sourceType: "module",
+  });
 
-/**
- * Extracts Convex function names from a loaded module
- */
-function extractConvexFunctionNames(module: any, modulePath: string, baseDir: string): string[] {
+  if (ast.errors && ast.errors.length > 0) {
+    throw new Error(
+      `Failed to parse ${modulePath}: ${ast.errors.map((e) => e.message).join(", ")}`
+    );
+  }
+
   const functionNames: string[] = [];
   const relativePath = path.relative(baseDir, modulePath);
   const moduleName = relativePath.replace(/\.[^/.]+$/, ""); // Remove extension
 
-  // Check all exports in the module
-  for (const [exportName, exportValue] of Object.entries(module)) {
-    if (isConvexFunction(exportValue)) {
+  // Walk through the AST to find exported Convex functions
+  walkAST(ast.program, (node) => {
+    if (isConvexFunctionExport(node)) {
+      const exportName = getExportName(node);
       const functionName = exportName === "default" ? moduleName : `${moduleName}:${exportName}`;
       functionNames.push(functionName);
     }
-  }
+  });
 
   return functionNames;
 }
 
 /**
- * Extracts function references from a loaded module
+ * Extracts function references from a module using AST parsing
  */
-function extractFunctionReferences(
-  module: any,
+function extractFunctionReferencesFromAST(
   modulePath: string,
-  baseDir: string
+  baseDir: string,
+  ctx: Context
 ): AnyFunctionReference[] {
+  const source = ctx.fs.readUtf8File(modulePath);
+  const ast = parseSync(modulePath, source, {
+    sourceType: "module",
+  });
+
+  if (ast.errors && ast.errors.length > 0) {
+    throw new Error(
+      `Failed to parse ${modulePath}: ${ast.errors.map((e) => e.message).join(", ")}`
+    );
+  }
+
   const functionRefs: AnyFunctionReference[] = [];
   const relativePath = path.relative(baseDir, modulePath);
   const moduleName = relativePath.replace(/\.[^/.]+$/, ""); // Remove extension
 
-  // Check all exports in the module
-  for (const [exportName, exportValue] of Object.entries(module)) {
-    if (isConvexFunction(exportValue)) {
-      // Create a function reference for this exported function
+  // Walk through the AST to find exported Convex functions
+  walkAST(ast.program, (node) => {
+    if (isConvexFunctionExport(node)) {
+      const exportName = getExportName(node);
       const functionName = exportName === "default" ? moduleName : `${moduleName}:${exportName}`;
-      const functionRef = createFunctionReference(functionName, exportValue);
+      const functionRef = createFunctionReferenceFromAST(node, functionName);
       if (functionRef) {
         functionRefs.push(functionRef);
       }
     }
-  }
+  });
 
   return functionRefs;
 }
 
 /**
- * Extracts registered Convex functions from a loaded module
+ * Extracts registered Convex functions from a module using AST parsing
  */
-function extractRegisteredConvexFunctions(module: any): RegisteredConvexFunction[] {
-  const registeredFunctions: RegisteredConvexFunction[] = [];
+function extractRegisteredConvexFunctionsFromAST(
+  modulePath: string,
+  _baseDir: string,
+  _ctx: Context
+): RegisteredConvexFunction[] {
+  // Note: This function cannot extract the actual registered functions from AST alone
+  // since the functions are created at runtime. This would require dynamic loading.
+  // For now, we'll return an empty array and suggest using the other functions.
+  logVerbose(
+    chalk.yellow(
+      `Cannot extract registered functions from AST for ${modulePath}. Use getExportedFunctionRefs instead.`
+    )
+  );
+  return [];
+}
 
-  // Check all exports in the module
-  for (const [, exportValue] of Object.entries(module)) {
-    if (isConvexFunction(exportValue)) {
-      registeredFunctions.push(exportValue as RegisteredConvexFunction);
+/**
+ * Walks through an AST node and calls the visitor function for each node
+ */
+function walkAST(node: any, visitor: (node: any) => void): void {
+  visitor(node);
+
+  for (const key in node) {
+    if (key === "parent" || key === "range" || key === "loc") continue;
+
+    const child = node[key];
+    if (Array.isArray(child)) {
+      for (const item of child) {
+        if (item && typeof item === "object" && item.type) {
+          walkAST(item, visitor);
+        }
+      }
+    } else if (child && typeof child === "object" && child.type) {
+      walkAST(child, visitor);
+    }
+  }
+}
+
+/**
+ * Checks if an AST node represents a Convex function export
+ */
+function isConvexFunctionExport(node: any): boolean {
+  // Check for export declarations like: export const getUser = internalQuery(...)
+  if (node.type === "ExportNamedDeclaration" && node.declaration) {
+    const decl = node.declaration;
+    if (decl.type === "VariableDeclaration") {
+      for (const declarator of decl.declarations) {
+        if (declarator.init && isConvexFunctionCall(declarator.init)) {
+          return true;
+        }
+      }
     }
   }
 
-  return registeredFunctions;
+  // Check for export default declarations like: export default internalQuery(...)
+  if (node.type === "ExportDefaultDeclaration" && isConvexFunctionCall(node.declaration)) {
+    return true;
+  }
+
+  return false;
 }
 
 /**
- * Checks if a value is a Convex function by checking for the isConvexFunction property
+ * Checks if an AST node represents a Convex function call
  */
-function isConvexFunction(value: any): boolean {
-  return value && typeof value === "object" && value.isConvexFunction === true;
+function isConvexFunctionCall(node: any): boolean {
+  if (!node || node.type !== "CallExpression") return false;
+
+  const callee = node.callee;
+  if (!callee) return false;
+
+  // Check for calls like: internalQuery(...), mutation(...), action(...), etc.
+  const functionNames = [
+    "internalQuery",
+    "query",
+    "internalMutation",
+    "mutation",
+    "internalAction",
+    "action",
+  ];
+
+  if (callee.type === "Identifier") {
+    return functionNames.includes(callee.name);
+  }
+
+  return false;
 }
 
 /**
- * Creates a function reference from a function name and registered function
+ * Gets the export name from an AST node
  */
-function createFunctionReference(
-  functionName: string,
-  registeredFunc: any
+function getExportName(node: any): string {
+  if (node.type === "ExportDefaultDeclaration") {
+    return "default";
+  }
+
+  if (node.type === "ExportNamedDeclaration" && node.declaration) {
+    const decl = node.declaration;
+    if (decl.type === "VariableDeclaration" && decl.declarations.length > 0) {
+      const declarator = decl.declarations[0];
+      if (declarator.id && declarator.id.type === "Identifier") {
+        return declarator.id.name;
+      }
+    }
+  }
+
+  return "unknown";
+}
+
+/**
+ * Creates a function reference from an AST node
+ */
+function createFunctionReferenceFromAST(
+  node: any,
+  functionName: string
 ): AnyFunctionReference | null {
   try {
-    // Create a function reference object that matches the expected interface
+    const functionType = getFunctionTypeFromAST(node);
+    const visibility = getFunctionVisibilityFromAST(node);
+
     const functionRef = {
-      _type: getFunctionType(registeredFunc),
-      _visibility: getFunctionVisibility(registeredFunc),
+      _type: functionType,
+      _visibility: visibility,
       _args: {},
       _returnType: {},
       _componentPath: undefined,
@@ -397,20 +504,50 @@ function createFunctionReference(
 }
 
 /**
- * Determines the function type from a registered function
+ * Determines the function type from an AST node
  */
-function getFunctionType(registeredFunc: any): "query" | "mutation" | "action" {
-  if (registeredFunc.isQuery) return "query";
-  if (registeredFunc.isMutation) return "mutation";
-  if (registeredFunc.isAction) return "action";
-  throw new Error("Unknown function type");
+function getFunctionTypeFromAST(node: any): "query" | "mutation" | "action" {
+  const callNode = getCallExpression(node);
+  if (!callNode || !callNode.callee || callNode.callee.type !== "Identifier") {
+    throw new Error("Cannot determine function type from AST");
+  }
+
+  const functionName = callNode.callee.name;
+  if (functionName.includes("Query")) return "query";
+  if (functionName.includes("Mutation")) return "mutation";
+  if (functionName.includes("Action")) return "action";
+
+  throw new Error(`Unknown function type for ${functionName}`);
 }
 
 /**
- * Determines the function visibility from a registered function
+ * Determines the function visibility from an AST node
  */
-function getFunctionVisibility(registeredFunc: any): "public" | "internal" {
-  if (registeredFunc.isPublic) return "public";
-  if (registeredFunc.isInternal) return "internal";
-  throw new Error("Unknown function visibility");
+function getFunctionVisibilityFromAST(node: any): "public" | "internal" {
+  const callNode = getCallExpression(node);
+  if (!callNode || !callNode.callee || callNode.callee.type !== "Identifier") {
+    throw new Error("Cannot determine function visibility from AST");
+  }
+
+  const functionName = callNode.callee.name;
+  if (functionName.startsWith("internal")) return "internal";
+  return "public";
+}
+
+/**
+ * Gets the call expression from an AST node
+ */
+function getCallExpression(node: any): any {
+  if (node.type === "ExportDefaultDeclaration") {
+    return node.declaration;
+  }
+
+  if (node.type === "ExportNamedDeclaration" && node.declaration) {
+    const decl = node.declaration;
+    if (decl.type === "VariableDeclaration" && decl.declarations.length > 0) {
+      return decl.declarations[0].init;
+    }
+  }
+
+  return null;
 }
