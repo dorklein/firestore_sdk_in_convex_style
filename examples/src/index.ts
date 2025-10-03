@@ -1,5 +1,4 @@
 import { createFunctionRunner } from "@smartbill/firestore-convex-style/server";
-import { getFirestore } from "firebase-admin/firestore";
 import { schema } from "../firestore/schema.js";
 import type { Id } from "../firestore/_generated/dataModel.js";
 

@@ -11,6 +11,6 @@
   "license": "ISC",
   "packageManager": "pnpm@10.10.0",
   "dependencies": {
-    "@smartbill/firestore-convex-style": "jsr:^0.1.33"
+    "@smartbill/firestore-convex-style": "jsr:^0.1.34"
   }
 }
