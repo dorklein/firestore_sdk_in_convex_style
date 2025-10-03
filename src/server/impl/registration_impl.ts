@@ -32,7 +32,6 @@ import { QueryImpl } from "./query_impl.js";
 import { parseArgs } from "../../common/index.js";
 import { asObjectValidator } from "../../values/validator.js";
 import { getFunctionAddress } from "../components/paths.js";
-import { FunctionReference } from "../api.js";
 import {
   invokeFunctionByType,
   registerAction,
@@ -50,9 +49,9 @@ async function invokeMutation<
     // storage: setupStorageWriter(requestId),
     // scheduler: setupMutationScheduler(),
 
-    runQuery: (reference: FunctionReference<"query", "public" | "internal">, args?: any) =>
+    runQuery: (reference: RegisteredQuery<"public" | "internal", any, any>, args?: any) =>
       runUdf("query", reference, args),
-    runMutation: (reference: FunctionReference<"mutation", "public" | "internal">, args?: any) =>
+    runMutation: (reference: RegisteredMutation<"public" | "internal", any, any>, args?: any) =>
       runUdf("mutation", reference, args),
   } satisfies GenericMutationCtx<GenericDataModel>;
   const result = await invokeFunction(func, mutationCtx, args as any);
@@ -245,7 +244,7 @@ async function invokeQuery<F extends (ctx: GenericQueryCtx<GenericDataModel>, ..
     db: setupReader(getDefaultDB()),
     // auth: setupAuth(requestId),
     // storage: setupStorageReader(requestId),
-    runQuery: (reference: FunctionReference<"query", "public" | "internal">, args?: any) =>
+    runQuery: (reference: RegisteredQuery<"public" | "internal", any, any>, args?: any) =>
       runUdf("query", reference, args),
   } satisfies GenericQueryCtx<GenericDataModel>;
   const result = await invokeFunction(func, queryCtx, args as any);
@@ -444,7 +443,10 @@ export const internalActionGeneric: ActionBuilder<any, "internal"> = ((
 
 async function runUdf(
   udfType: "query" | "mutation",
-  f: FunctionReference<"query" | "mutation", "public" | "internal">,
+  // f: FunctionReference<"query" | "mutation", "public" | "internal">,
+  f:
+    | RegisteredQuery<"public" | "internal", any, any>
+    | RegisteredMutation<"public" | "internal", any, any>,
   args?: Record<string, Value>
 ): Promise<any> {
   const queryArgs = parseArgs(args);

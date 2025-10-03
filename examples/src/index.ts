@@ -8,6 +8,7 @@ import type { Id } from "../firestore/_generated/dataModel.js";
 import { initializeApp } from "firebase-admin/app";
 import { credential } from "firebase-admin";
 import { processUserAction } from "../firestore/demoWithActions.js";
+import { apiRegistry } from "../firestore/_generated/apiRegistry.js";
 
 initializeApp({
   projectId: "demo-test-project",
@@ -15,7 +16,7 @@ initializeApp({
 });
 
 async function main() {
-  const runner = createFunctionRunner(schema);
+  const runner = createFunctionRunner(schema, apiRegistry);
 
   //   const customerId = await runner.runMutation(createCustomer, {
   //     userId: "users:abc123" as Id<"users">,

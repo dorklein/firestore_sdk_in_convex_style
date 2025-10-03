@@ -8,7 +8,7 @@ import {
   RegisteredMutation,
   RegisteredQuery,
 } from "./registration.js";
-import { AnyFunctionReference, FunctionReference, getFunctionName } from "./api.js";
+import { FunctionReference, getFunctionName } from "./api.js";
 import { functionName } from "./functionName.js";
 
 let _globalApiRegistry: Record<string, AnyRegisteredFunction> | undefined;
@@ -102,14 +102,14 @@ export function registerAction<V extends FunctionVisibility>(
 }
 
 export async function invokeFunctionByType(
-  func: AnyFunctionReference,
+  registeredFunc: AnyRegisteredFunction,
   argsStr: string
 ): Promise<any> {
-  const funcName = getFunctionName(func);
-  const registeredFunc = getGlobalApiRegistry()[funcName];
-  if (!registeredFunc) {
-    throw new Error(`Function ${funcName} is not registered`);
-  }
+  //   const funcName = getFunctionName(func);
+  //   const registeredFunc = getGlobalApiRegistry()[funcName];
+  //   if (!registeredFunc) {
+  //     throw new Error(`Function ${funcName} is not registered`);
+  //   }
 
   if (isRegisteredQuery(registeredFunc)) {
     return registeredFunc.invokeQuery(argsStr);
