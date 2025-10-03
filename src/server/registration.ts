@@ -281,7 +281,7 @@ export type RegisteredQuery<
   isQuery: true;
 
   /** @internal */
-  invokeQuery(argsStr: string): Promise<string>;
+  invokeQuery(args?: Args): Promise<Returns>;
 
   /** @internal */
   exportArgs(): string;
@@ -320,7 +320,7 @@ export type RegisteredMutation<
   isMutation: true;
 
   /** @internal */
-  invokeMutation(argsStr: string): Promise<string>;
+  invokeMutation(args?: Args): Promise<Returns>;
 
   /** @internal */
   exportArgs(): string;
@@ -359,7 +359,7 @@ export type RegisteredAction<
   isAction: true;
 
   /** @internal */
-  invokeAction(argsStr: string): Promise<string>;
+  invokeAction(args?: Args): Promise<Returns>;
 
   /** @internal */
   exportArgs(): string;

@@ -1,6 +1,6 @@
 import { SchemaDefinition } from "./schema.js";
 import { RegisteredQuery, RegisteredMutation, RegisteredAction } from "./registration.js";
-import { ObjectType, PropertyValidators } from "../values/index.js";
+import { ObjectType, PropertyValidators, Value } from "../values/index.js";
 
 /**
  * Runtime executor for Convex-style functions.
@@ -18,7 +18,7 @@ export class FunctionRunner {
    * @param args - The arguments to pass to the query
    * @returns The query result
    */
-  async runQuery<Args extends Record<string, unknown>, Returns>(
+  async runQuery<Args extends Record<string, Value>, Returns>(
     query: RegisteredQuery<any, Args, Returns>,
     args: Args
   ): Promise<Returns> {
@@ -27,20 +27,8 @@ export class FunctionRunner {
       ? this.validateArgs(query._argsValidator, args)
       : args;
 
-    const result = await query.invokeQuery(JSON.stringify(validatedArgs));
-    return JSON.parse(result);
-    // // Create query context
-    // const ctx: GenericQueryCtx<DataModel> = {
-    //   db: this.db,
-    //   auth: undefined, // TODO: Implement auth
-    //   storage: undefined, // TODO: Implement storage
-    //   runQuery: async (nestedQuery, ...nestedArgs) => {
-    //     return this.runQuery(nestedQuery as any, (nestedArgs[0] || {}) as any);
-    //   },
-    // };
-
-    // // Execute the handler
-    // return await query._handler(ctx, validatedArgs as any);
+    const result = await query.invokeQuery(validatedArgs as Args);
+    return result;
   }
 
   /**
@@ -61,41 +49,8 @@ export class FunctionRunner {
     const validatedArgs = mutation._argsValidator
       ? this.validateArgs(mutation._argsValidator, args)
       : args;
-    const result = await mutation.invokeMutation(JSON.stringify(validatedArgs));
-
-    return JSON.parse(result);
-
-    // Run mutation inside a Firestore transaction
-    // const firestore = this.db.getFirestore();
-    // return await firestore.runTransaction(async (transaction) => {
-    //   // Create a transactional database wrapper
-    //   const txDb = new TransactionalDatabaseImpl(firestore, transaction);
-
-    //   // Create mutation context
-    //   const ctx: GenericMutationCtx<DataModel> = {
-    //     db: txDb as any, // Cast to work around generic constraints
-    //     auth: undefined, // TODO: Implement auth
-    //     storage: undefined, // TODO: Implement storage
-    //     runQuery: async (nestedQuery, ...nestedArgs) => {
-    //       // Queries within mutations use the transaction context
-    //       const queryCtx: GenericQueryCtx<DataModel> = {
-    //         db: txDb as any,
-    //         auth: undefined,
-    //         storage: undefined,
-    //         runQuery: ctx.runQuery as any,
-    //       };
-    //       return await (nestedQuery as any)._handler(queryCtx, (nestedArgs[0] || {}) as any);
-    //     },
-    //     runMutation: async (nestedMutation, ...nestedArgs) => {
-    //       // Nested mutations share the same transaction
-    //       return await (nestedMutation as any)._handler(ctx, (nestedArgs[0] || {}) as any);
-    //     },
-    //   };
-
-    //   // Execute the handler within the transaction
-    //   // If the handler throws, the transaction will automatically roll back
-    //   return await mutation._handler(ctx, validatedArgs as any);
-    // });
+    const result = await mutation.invokeMutation(validatedArgs as Args);
+    return result;
   }
 
   /**
@@ -117,26 +72,8 @@ export class FunctionRunner {
       ? this.validateArgs(action._argsValidator, args)
       : args;
 
-    const result = await action.invokeAction(JSON.stringify(validatedArgs));
-    return JSON.parse(result);
-
-    // // Create action context (no direct DB access)
-    // const ctx: GenericActionCtx<DataModel> = {
-    //   auth: undefined, // TODO: Implement auth
-    //   storage: undefined, // TODO: Implement storage
-    //   runQuery: async (nestedQuery, ...nestedArgs) => {
-    //     return this.runQuery(nestedQuery as any, (nestedArgs[0] || {}) as any);
-    //   },
-    //   runMutation: async (nestedMutation, ...nestedArgs) => {
-    //     return this.runMutation(nestedMutation as any, (nestedArgs[0] || {}) as any);
-    //   },
-    //   runAction: async (nestedAction, ...nestedArgs) => {
-    //     return this.runAction(nestedAction as any, (nestedArgs[0] || {}) as any);
-    //   },
-    // };
-
-    // // Execute the handler
-    // return await action._handler(ctx, validatedArgs as any);
+    const result = await action.invokeAction(validatedArgs as Args);
+    return result;
   }
 
   /**

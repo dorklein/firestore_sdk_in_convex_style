@@ -1,6 +1,5 @@
 import { v } from "@smartbill/firestore-convex-style/values";
 import { internalAction, internalQuery, internalMutation } from "./_generated/server";
-import { internal } from "./_generated/api";
 import { createCustomer, getCustomerById } from "./functions";
 
 // Example actions demonstrating different patterns

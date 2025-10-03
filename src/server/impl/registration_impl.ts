@@ -5,7 +5,6 @@ import {
   jsonToConvex,
   v,
   Validator,
-  Value,
 } from "../../values/index.js";
 import { GenericDataModel } from "../data_model.js";
 import {
@@ -14,8 +13,6 @@ import {
   GenericActionCtx,
   GenericMutationCtx,
   GenericQueryCtx,
-  isRegisteredMutation,
-  isRegisteredQuery,
   MutationBuilder,
   QueryBuilder,
   RegisteredAction,
@@ -25,13 +22,6 @@ import {
 import { setupActionCalls } from "./actions_impl.js";
 import { getDefaultDB, setupReader, setupWriter } from "./database_impl.js";
 import { QueryImpl } from "./query_impl.js";
-// import { setupActionScheduler, setupMutationScheduler } from "./scheduler_impl.js";
-// import {
-//   setupStorageActionWriter,
-//   setupStorageReader,
-//   setupStorageWriter,
-// } from "./storage_impl.js";
-import { parseArgs } from "../../common/index.js";
 import { asObjectValidator } from "../../values/validator.js";
 
 async function invokeMutation<
@@ -45,9 +35,9 @@ async function invokeMutation<
     // scheduler: setupMutationScheduler(),
 
     runQuery: (reference: RegisteredQuery<"public" | "internal", any, any>, args?: any) =>
-      runUdf("query", reference, args),
+      reference.invokeQuery(args),
     runMutation: (reference: RegisteredMutation<"public" | "internal", any, any>, args?: any) =>
-      runUdf("mutation", reference, args),
+      reference.invokeMutation(args),
   } satisfies GenericMutationCtx<GenericDataModel>;
   const result = await invokeFunction(func, mutationCtx, args as any);
   validateReturnValue(result);
@@ -236,7 +226,7 @@ async function invokeQuery<F extends (ctx: GenericQueryCtx<GenericDataModel>, ..
     // auth: setupAuth(requestId),
     // storage: setupStorageReader(requestId),
     runQuery: (reference: RegisteredQuery<"public" | "internal", any, any>, args?: any) =>
-      runUdf("query", reference, args),
+      reference.invokeQuery(args),
   } satisfies GenericQueryCtx<GenericDataModel>;
   const result = await invokeFunction(func, queryCtx, args as any);
   validateReturnValue(result);
@@ -320,7 +310,7 @@ async function invokeAction<
     // scheduler: setupActionScheduler(requestId),
     // storage: setupStorageActionWriter(requestId),
     // vectorSearch: setupActionVectorSearch(requestId) as any,
-  } as GenericActionCtx<GenericDataModel>;
+  } satisfies GenericActionCtx<GenericDataModel>;
   const result = await invokeFunction(func, ctx, args as any);
   return JSON.stringify(convexToJson(result === undefined ? null : result));
 }
@@ -390,67 +380,3 @@ export const internalActionGeneric: ActionBuilder<any, "internal"> = ((
 
   return func;
 }) as ActionBuilder<any, "internal">;
-
-// async function invokeHttpAction<
-//   F extends (ctx: GenericActionCtx<GenericDataModel>, request: Request) => any,
-// >(func: F, request: Request) {
-//   // TODO(presley): Change the function signature and propagate the requestId from Rust.
-//   // Ok, to mock it out for now, since http endpoints are only running in V8.
-//   const requestId = "";
-//   const calls = setupActionCalls(requestId);
-//   const ctx = {
-//     ...calls,
-//     // auth: setupAuth(requestId),
-//     // storage: setupStorageActionWriter(requestId),
-//     // scheduler: setupActionScheduler(requestId),
-//     // vectorSearch: setupActionVectorSearch(requestId) as any,
-//   };
-//   return await invokeFunction(func, ctx, [request]);
-// }
-
-// /**
-//  * Define a Convex HTTP action.
-//  *
-//  * @param func - The function. It receives an {@link GenericActionCtx} as its first argument, and a `Request` object
-//  * as its second.
-//  * @returns The wrapped function. Route a URL path to this function in `convex/http.js`.
-//  *
-//  * @public
-//  */
-// export const httpActionGeneric = (
-//   func: (ctx: GenericActionCtx<GenericDataModel>, request: Request) => Promise<Response>
-// ): PublicHttpAction => {
-//   const q = dontCallDirectly("httpAction", func) as PublicHttpAction;
-//   assertNotBrowser();
-//   q.isHttp = true;
-//   q.invokeHttpAction = (request) => invokeHttpAction(func as any, request);
-//   q._handler = func;
-//   return q;`
-// };
-
-async function runUdf(
-  udfType: "query" | "mutation",
-  // f: FunctionReference<"query" | "mutation", "public" | "internal">,
-  f:
-    | RegisteredQuery<"public" | "internal", any, any>
-    | RegisteredMutation<"public" | "internal", any, any>,
-  args?: Record<string, Value>
-): Promise<any> {
-  console.log("runUdf", udfType, f, args);
-  const queryArgs = parseArgs(args);
-  const argsStr = JSON.stringify(queryArgs);
-  // const syscallArgs = {
-  //   udfType,
-  //   args: convexToJson(queryArgs),
-  //   ...getFunctionAddress(f),
-  // };
-  if (isRegisteredQuery(f)) {
-    return f.invokeQuery(argsStr);
-  } else if (isRegisteredMutation(f)) {
-    return f.invokeMutation(argsStr);
-  }
-  // const result = await f(f, syscallArgs.args);
-  // const result = await registeredFunc.invokeMutation(argsStr);
-  // const result = await performAsyncSyscall("1.0/runUdf", syscallArgs);
-  // return jsonToConvex(result);
-}
