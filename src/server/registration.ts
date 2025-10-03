@@ -531,3 +531,8 @@ export type QueryBuilderInstance<DataModel extends GenericDataModel> = QueryBuil
   DataModel,
   "internal"
 >;
+
+export type AnyRegisteredFunction =
+  | RegisteredQuery<"public" | "internal", any, any>
+  | RegisteredMutation<"public" | "internal", any, any>
+  | RegisteredAction<"public" | "internal", any, any>;

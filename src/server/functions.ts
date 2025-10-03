@@ -1,6 +1,12 @@
 import { SchemaDefinition } from "./schema.js";
-import { RegisteredQuery, RegisteredMutation, RegisteredAction } from "./registration.js";
+import {
+  RegisteredQuery,
+  RegisteredMutation,
+  RegisteredAction,
+  AnyRegisteredFunction,
+} from "./registration.js";
 import { ObjectType, PropertyValidators } from "../values/index.js";
+import { setGlobalApiRegistry } from "./registry.js";
 
 /**
  * Runtime executor for Convex-style functions.
@@ -9,7 +15,12 @@ import { ObjectType, PropertyValidators } from "../values/index.js";
  * and transaction handling.
  */
 export class FunctionRunner {
-  constructor(private schemaDefinition: SchemaDefinition<any, any>) {}
+  constructor(
+    private schemaDefinition: SchemaDefinition<any, any>,
+    apiRegistry: Record<string, AnyRegisteredFunction>
+  ) {
+    setGlobalApiRegistry(apiRegistry);
+  }
 
   /**
    * Execute a query function.
@@ -194,6 +205,9 @@ export class FunctionRunner {
  * });
  * ```
  */
-export function createFunctionRunner(schemaDefinition: SchemaDefinition<any, any>): FunctionRunner {
-  return new FunctionRunner(schemaDefinition);
+export function createFunctionRunner(
+  schemaDefinition: SchemaDefinition<any, any>,
+  apiRegistry: Record<string, AnyRegisteredFunction>
+): FunctionRunner {
+  return new FunctionRunner(schemaDefinition, apiRegistry);
 }

@@ -1,4 +1,5 @@
 import {
+  AnyRegisteredFunction,
   FunctionVisibility,
   isRegisteredAction,
   isRegisteredMutation,
@@ -10,25 +11,37 @@ import {
 import { AnyFunctionReference, FunctionReference, getFunctionName } from "./api.js";
 import { functionName } from "./functionName.js";
 
+let _globalApiRegistry: Record<string, AnyRegisteredFunction> | undefined;
+
+export function setGlobalApiRegistry(apiRegistry: Record<string, AnyRegisteredFunction>) {
+  _globalApiRegistry = apiRegistry;
+}
+
+export function getGlobalApiRegistry() {
+  if (!_globalApiRegistry) {
+    throw new Error("Global API registry is not set");
+  }
+  return _globalApiRegistry;
+}
+
 // this new lines is an experiment!
 // I want to have a local registary in memory to point functionReferences to the actual function
 // this will allow us to have a local registry of functions that can be used to call functions directly
 // without going through the syscall layer
 /// SAVE by address: string -> registeredFunction
-type FuncName = string;
-type RegisteredFunc =
-  | RegisteredQuery<"public" | "internal", any, any>
-  | RegisteredMutation<"public" | "internal", any, any>
-  | RegisteredAction<"public" | "internal", any, any>;
+// type FuncName = string;
+// type RegisteredFunc =
+//   | RegisteredQuery<"public" | "internal", any, any>
+//   | RegisteredMutation<"public" | "internal", any, any>
+//   | RegisteredAction<"public" | "internal", any, any>;
 
-const functionRegistry = new Map<FuncName, RegisteredFunc>();
 // const mutationRegistry = new Map<string, RegisteredMutation<"public" | "internal", any, any>>();
 // const queryRegistry = new Map<string, RegisteredQuery<"public" | "internal", any, any>>();
 // const actionRegistry = new Map<string, RegisteredAction<"public" | "internal", any, any>>();
 
-export function registerFunction(funcName: FuncName, registeredFunc: RegisteredFunc) {
-  functionRegistry.set(funcName, registeredFunc);
-}
+// export function registerFunction(funcName: FuncName, registeredFunc: RegisteredFunc) {
+//   //   functionRegistry.set(funcName, registeredFunc);
+// }
 
 export function registerMutation<V extends FunctionVisibility>(
   registeredFunc: RegisteredMutation<V, any, any>,
@@ -93,7 +106,7 @@ export async function invokeFunctionByType(
   argsStr: string
 ): Promise<any> {
   const funcName = getFunctionName(func);
-  const registeredFunc = functionRegistry.get(funcName) as RegisteredFunc;
+  const registeredFunc = getGlobalApiRegistry()[funcName];
   if (!registeredFunc) {
     throw new Error(`Function ${funcName} is not registered`);
   }
