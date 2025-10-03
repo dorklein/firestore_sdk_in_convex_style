@@ -1,9 +1,6 @@
 import path from "path";
 import prettier from "prettier";
 import { withTmpDir, TempDir } from "../../bundler/fs.js";
-import { entryPoints, getExportedConvexFunctions } from "../../bundler/index.js";
-import { apiCodegen } from "../codegen_templates/api.js";
-import { apiRegistryCodegen } from "../codegen_templates/apiRegistry.js";
 import { dynamicDataModelDTS, noSchemaDataModelDTS } from "../codegen_templates/dataModel.js";
 import { readmeCodegen } from "../codegen_templates/readme.js";
 import { serverCodegen } from "../codegen_templates/server.js";
@@ -82,8 +79,8 @@ export async function doCodegen(
     // The `api.d.ts` file imports from the developer's modules, which then
     // import from `server.d.ts`. Note that there's a cycle here, since the
     // developer's modules could also import from the `api.{js,d.ts}` files.
-    const apiFiles = await doApiCodegen(ctx, tmpDir, functionsDir, codegenDir, opts);
-    writtenFiles.push(...apiFiles);
+    // const apiFiles = await doApiCodegen(ctx, tmpDir, functionsDir, codegenDir, opts);
+    // writtenFiles.push(...apiFiles);
 
     // Cleanup any files that weren't written in this run.
     for (const file of ctx.fs.listDir(codegenDir)) {
@@ -186,48 +183,48 @@ async function doServerCodegen(
   return ["server.js", "server.d.ts"];
 }
 
-async function doApiCodegen(
-  ctx: Context,
-  tmpDir: TempDir,
-  functionsDir: string,
-  codegenDir: string,
-  opts?: { dryRun?: boolean; debug?: boolean }
-) {
-  const absModulePaths = await entryPoints(ctx, functionsDir);
-  const modulePaths = absModulePaths.map((p) => path.relative(functionsDir, p));
+// async function doApiCodegen(
+//   ctx: Context,
+//   tmpDir: TempDir,
+//   functionsDir: string,
+//   codegenDir: string,
+//   opts?: { dryRun?: boolean; debug?: boolean }
+// ) {
+//   const absModulePaths = await entryPoints(ctx, functionsDir);
+//   const modulePaths = absModulePaths.map((p) => path.relative(functionsDir, p));
 
-  const apiContent = apiCodegen(modulePaths);
-  await writeFormattedFile(
-    ctx,
-    tmpDir,
-    apiContent.JS,
-    "typescript",
-    path.join(codegenDir, "api.js"),
-    opts
-  );
-  await writeFormattedFile(
-    ctx,
-    tmpDir,
-    apiContent.DTS,
-    "typescript",
-    path.join(codegenDir, "api.d.ts"),
-    opts
-  );
+//   const apiContent = apiCodegen(modulePaths);
+//   await writeFormattedFile(
+//     ctx,
+//     tmpDir,
+//     apiContent.JS,
+//     "typescript",
+//     path.join(codegenDir, "api.js"),
+//     opts
+//   );
+//   await writeFormattedFile(
+//     ctx,
+//     tmpDir,
+//     apiContent.DTS,
+//     "typescript",
+//     path.join(codegenDir, "api.d.ts"),
+//     opts
+//   );
 
-  const functionNames = await getExportedConvexFunctions(ctx, functionsDir);
-  const apiRegistryContent = apiRegistryCodegen(modulePaths, functionNames);
-  await writeFormattedFile(
-    ctx,
-    tmpDir,
-    apiRegistryContent,
-    "typescript",
-    path.join(codegenDir, "apiRegistry.js"),
-    opts
-  );
-  const writtenFiles = ["api.js", "api.d.ts", "apiRegistry.js"];
+//   const functionNames = await getExportedConvexFunctions(ctx, functionsDir);
+//   const apiRegistryContent = apiRegistryCodegen(modulePaths, functionNames);
+//   await writeFormattedFile(
+//     ctx,
+//     tmpDir,
+//     apiRegistryContent,
+//     "typescript",
+//     path.join(codegenDir, "apiRegistry.js"),
+//     opts
+//   );
+//   const writtenFiles = ["api.js", "api.d.ts", "apiRegistry.js"];
 
-  return writtenFiles;
-}
+//   return writtenFiles;
+// }
 
 async function writeFormattedFile(
   ctx: Context,
