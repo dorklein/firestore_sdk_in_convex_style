@@ -30,9 +30,15 @@ import { QueryImpl } from "./query_impl.js";
 //   setupStorageWriter,
 // } from "./storage_impl.js";
 import { parseArgs } from "../../common/index.js";
-import { performAsyncSyscall } from "./syscall.js";
 import { asObjectValidator } from "../../values/validator.js";
 import { getFunctionAddress } from "../components/paths.js";
+import { FunctionReference } from "../api.js";
+import {
+  invokeFunctionByType,
+  registerAction,
+  registerMutation,
+  registerQuery,
+} from "../registry.js";
 
 async function invokeMutation<
   F extends (ctx: GenericMutationCtx<GenericDataModel>, ...args: any) => any,
@@ -44,9 +50,11 @@ async function invokeMutation<
     // storage: setupStorageWriter(requestId),
     // scheduler: setupMutationScheduler(),
 
-    runQuery: (reference: any, args?: any) => runUdf("query", reference, args),
-    runMutation: (reference: any, args?: any) => runUdf("mutation", reference, args),
-  } as GenericMutationCtx<GenericDataModel>;
+    runQuery: (reference: FunctionReference<"query", "public" | "internal">, args?: any) =>
+      runUdf("query", reference, args),
+    runMutation: (reference: FunctionReference<"mutation", "public" | "internal">, args?: any) =>
+      runUdf("mutation", reference, args),
+  } satisfies GenericMutationCtx<GenericDataModel>;
   const result = await invokeFunction(func, mutationCtx, args as any);
   validateReturnValue(result);
   return JSON.stringify(convexToJson(result === undefined ? null : result));
@@ -182,6 +190,9 @@ export const mutationGeneric: MutationBuilder<any, "public"> = ((
   func.exportArgs = exportArgs(functionDefinition);
   func.exportReturns = exportReturns(functionDefinition);
   func._handler = handler;
+
+  registerMutation(func, "public");
+
   return func;
 }) as MutationBuilder<any, "public">;
 
@@ -217,6 +228,9 @@ export const internalMutationGeneric: MutationBuilder<any, "internal"> = ((
   func.exportArgs = exportArgs(functionDefinition);
   func.exportReturns = exportReturns(functionDefinition);
   func._handler = handler;
+
+  registerMutation(func, "internal");
+
   return func;
 }) as MutationBuilder<any, "internal">;
 
@@ -229,8 +243,9 @@ async function invokeQuery<F extends (ctx: GenericQueryCtx<GenericDataModel>, ..
     db: setupReader(getDefaultDB()),
     // auth: setupAuth(requestId),
     // storage: setupStorageReader(requestId),
-    runQuery: (reference: any, args?: any) => runUdf("query", reference, args),
-  } as GenericQueryCtx<GenericDataModel>;
+    runQuery: (reference: FunctionReference<"query", "public" | "internal">, args?: any) =>
+      runUdf("query", reference, args),
+  } satisfies GenericQueryCtx<GenericDataModel>;
   const result = await invokeFunction(func, queryCtx, args as any);
   validateReturnValue(result);
   return JSON.stringify(convexToJson(result === undefined ? null : result));
@@ -264,6 +279,8 @@ export const queryGeneric: QueryBuilder<any, "public"> = ((
   func.exportArgs = exportArgs(functionDefinition);
   func.exportReturns = exportReturns(functionDefinition);
   func._handler = handler;
+
+  registerQuery(func, "public");
   return func;
 }) as QueryBuilder<any, "public">;
 
@@ -295,6 +312,8 @@ export const internalQueryGeneric: QueryBuilder<any, "internal"> = ((
   func.exportArgs = exportArgs(functionDefinition);
   func.exportReturns = exportReturns(functionDefinition);
   func._handler = handler;
+
+  registerQuery(func, "internal");
   return func;
 }) as QueryBuilder<any, "internal">;
 
@@ -340,6 +359,8 @@ export const actionGeneric: ActionBuilder<any, "public"> = ((
   func.exportArgs = exportArgs(functionDefinition);
   func.exportReturns = exportReturns(functionDefinition);
   func._handler = handler;
+
+  registerAction(func, "public");
   return func;
 }) as ActionBuilder<any, "public">;
 
@@ -373,6 +394,8 @@ export const internalActionGeneric: ActionBuilder<any, "internal"> = ((
   func.exportArgs = exportArgs(functionDefinition);
   func.exportReturns = exportReturns(functionDefinition);
   func._handler = handler;
+
+  registerAction(func, "internal");
   return func;
 }) as ActionBuilder<any, "internal">;
 
@@ -410,12 +433,12 @@ export const internalActionGeneric: ActionBuilder<any, "internal"> = ((
 //   q.isHttp = true;
 //   q.invokeHttpAction = (request) => invokeHttpAction(func as any, request);
 //   q._handler = func;
-//   return q;
+//   return q;`
 // };
 
 async function runUdf(
   udfType: "query" | "mutation",
-  f: any,
+  f: FunctionReference<"query" | "mutation", "public" | "internal">,
   args?: Record<string, Value>
 ): Promise<any> {
   const queryArgs = parseArgs(args);
@@ -424,6 +447,8 @@ async function runUdf(
     args: convexToJson(queryArgs),
     ...getFunctionAddress(f),
   };
-  const result = await performAsyncSyscall("1.0/runUdf", syscallArgs);
+  const result = await invokeFunctionByType(f, syscallArgs.args);
+  // const result = await registeredFunc.invokeMutation(argsStr);
+  // const result = await performAsyncSyscall("1.0/runUdf", syscallArgs);
   return jsonToConvex(result);
 }

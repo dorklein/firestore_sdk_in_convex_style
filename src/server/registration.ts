@@ -110,9 +110,8 @@ export interface GenericQueryCtx<DataModel extends GenericDataModel> {
    * and creating a new isolated JS context.
    */
   runQuery: <
-    Query extends
-      | FunctionReference<"query", "public" | "internal">
-      | RegisteredQuery<any, any, any>,
+    Query extends FunctionReference<"query", "public" | "internal">,
+    // | RegisteredQuery<any, any, any>,
   >(
     query: Query,
     ...args: Query extends FunctionReference<any, any, any, any> ? OptionalRestArgs<Query> : any[]
@@ -148,9 +147,8 @@ export interface GenericMutationCtx<DataModel extends GenericDataModel> {
    * Call a query function within the same transaction.
    */
   runQuery: <
-    Query extends
-      | FunctionReference<"query", "public" | "internal">
-      | RegisteredQuery<any, any, any>,
+    Query extends FunctionReference<"query", "public" | "internal">,
+    // | RegisteredQuery<any, any, any>,
   >(
     query: Query,
     ...args: Query extends FunctionReference<any, any, any, any> ? OptionalRestArgs<Query> : any[]
@@ -160,9 +158,8 @@ export interface GenericMutationCtx<DataModel extends GenericDataModel> {
    * Call a mutation function within the same transaction.
    */
   runMutation: <
-    Mutation extends
-      | FunctionReference<"mutation", "public" | "internal">
-      | RegisteredMutation<any, any, any>,
+    Mutation extends FunctionReference<"mutation", "public" | "internal">,
+    // | RegisteredMutation<any, any, any>,
   >(
     mutation: Mutation,
     ...args: Mutation extends FunctionReference<any, any, any, any>

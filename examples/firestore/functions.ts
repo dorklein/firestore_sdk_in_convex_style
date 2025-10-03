@@ -1,5 +1,5 @@
 import { v } from "@smartbill/firestore-convex-style/values";
-import type { DataModel } from "./_generated/dataModel.js";
+import type { DataModel, Id } from "./_generated/dataModel.js";
 import { internalMutation, internalQuery, mutation } from "./_generated/server.js";
 import { internal, api } from "./_generated/api.js";
 
@@ -10,9 +10,18 @@ const USER_NOT_FOUND_ERROR = "User not found";
 export const getCustomerById = internalQuery({
   args: { customerId: v.id("customers") },
   handler: async (ctx, args) => {
-    const customer = await ctx.db.get(args.customerId);
-    if (!customer) throw new Error(CUSTOMER_NOT_FOUND_ERROR);
-    return customer;
+    // const customer = await ctx.db.get(args.customerId);
+    // if (!customer) throw new Error(CUSTOMER_NOT_FOUND_ERROR);
+    // return customer;
+    return {
+      _id: args.customerId,
+      userId: "users|dfdf",
+      name: "Acme Corp",
+      email: "contact@acme.com",
+      phone: "1234567890",
+      address: "123 Main St, Anytown, USA",
+      contactName: "John Doe",
+    };
   },
 });
 
@@ -70,22 +79,23 @@ export const createCustomer = internalMutation({
   },
   handler: async (ctx, args) => {
     // Verify user exists
-    const user = await ctx.db.get(args.userId);
-    if (!user) throw new Error(USER_NOT_FOUND_ERROR);
+    return "customers|dfdf" as Id<"customers">;
+    // const user = await ctx.db.get(args.userId);
+    // if (!user) throw new Error(USER_NOT_FOUND_ERROR);
 
-    const customerId = await ctx.db.insert("customers", {
-      userId: args.userId,
-      name: args.name,
-      email: args.email,
-      phone: args.phone,
-      address: args.address,
-      contactName: args.contactName,
-      taxId: undefined,
-      tags: undefined,
-      metadata: undefined,
-    });
+    // const customerId = await ctx.db.insert("customers", {
+    //   userId: args.userId,
+    //   name: args.name,
+    //   email: args.email,
+    //   phone: args.phone,
+    //   address: args.address,
+    //   contactName: args.contactName,
+    //   taxId: undefined,
+    //   tags: undefined,
+    //   metadata: undefined,
+    // });
 
-    return customerId;
+    // return customerId;
   },
 });
 

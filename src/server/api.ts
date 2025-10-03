@@ -62,6 +62,24 @@ export type FunctionReference<
   _componentPath: ComponentPath;
 };
 
+export function isMutationFunctionReference(
+  arg: AnyFunctionReference
+): arg is FunctionReference<"mutation", "public" | "internal"> {
+  return arg._type === "mutation";
+}
+
+export function isQueryFunctionReference(
+  arg: AnyFunctionReference
+): arg is FunctionReference<"query", "public" | "internal"> {
+  return arg._type === "query";
+}
+
+export function isActionFunctionReference(
+  arg: AnyFunctionReference
+): arg is FunctionReference<"action", "public" | "internal"> {
+  return arg._type === "action";
+}
+
 /**
  * Get the name of a function from a {@link FunctionReference}.
  *

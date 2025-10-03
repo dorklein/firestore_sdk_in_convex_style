@@ -33,11 +33,15 @@ export const processUserAction = internalAction({
   },
   handler: async (ctx, args) => {
     // Simulate user processing
-    await ctx.runQuery(internal.functions.getCustomerById, { customerId: args.customerId });
-    await ctx.runMutation(internal.functions.createCustomer, {
+    const customerId = await ctx.runMutation(internal.functions.createCustomer, {
       userId: args.userId,
       name: args.operation,
     });
+    console.log({ customerId });
+    const customer = await ctx.runQuery(internal.functions.getCustomerById, {
+      customerId: args.customerId,
+    });
+    console.log({ customer });
     await ctx.runAction(internal.demoWithActions.tryProcessUserAction, {
       userId: args.userId,
       customerId: args.customerId,
