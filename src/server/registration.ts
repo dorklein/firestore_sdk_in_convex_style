@@ -324,6 +324,10 @@ export type RegisteredQuery<
   _handler: (ctx: GenericQueryCtx<any>, args: Args) => Returns;
 } & VisibilityProperties<Visibility>;
 
+export function isRegisteredQuery(func: any): func is RegisteredQuery<any, any, any> {
+  return func.isConvexFunction && func.isQuery;
+}
+
 /**
  * A mutation function that is part of this app.
  *
@@ -359,6 +363,10 @@ export type RegisteredMutation<
   _handler: (ctx: GenericMutationCtx<any>, args: Args) => Returns;
 } & VisibilityProperties<Visibility>;
 
+export function isRegisteredMutation(func: any): func is RegisteredMutation<any, any, any> {
+  return func.isConvexFunction && func.isMutation;
+}
+
 /**
  * An action function that is part of this app.
  *
@@ -393,6 +401,10 @@ export type RegisteredAction<
   /** @internal */
   _handler: (ctx: GenericActionCtx<any>, args: Args) => Returns;
 } & VisibilityProperties<Visibility>;
+
+export function isRegisteredAction(func: any): func is RegisteredAction<any, any, any> {
+  return func.isConvexFunction && func.isAction;
+}
 
 export type QueryBuilder<
   DataModel extends GenericDataModel,

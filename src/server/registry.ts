@@ -1,42 +1,52 @@
 import {
   FunctionVisibility,
+  isRegisteredAction,
+  isRegisteredMutation,
+  isRegisteredQuery,
   RegisteredAction,
   RegisteredMutation,
   RegisteredQuery,
-} from "../index.js";
-import {
-  AnyFunctionReference,
-  FunctionReference,
-  getFunctionName,
-  isActionFunctionReference,
-  isMutationFunctionReference,
-  isQueryFunctionReference,
-} from "./api.js";
+} from "./registration.js";
+import { AnyFunctionReference, FunctionReference, getFunctionName } from "./api.js";
+import { functionName } from "./functionName.js";
 
 // this new lines is an experiment!
 // I want to have a local registary in memory to point functionReferences to the actual function
 // this will allow us to have a local registry of functions that can be used to call functions directly
 // without going through the syscall layer
 /// SAVE by address: string -> registeredFunction
-const mutationRegistry = new Map<string, RegisteredMutation<"public" | "internal", any, any>>();
-const queryRegistry = new Map<string, RegisteredQuery<"public" | "internal", any, any>>();
-const actionRegistry = new Map<string, RegisteredAction<"public" | "internal", any, any>>();
+type FuncName = string;
+type RegisteredFunc =
+  | RegisteredQuery<"public" | "internal", any, any>
+  | RegisteredMutation<"public" | "internal", any, any>
+  | RegisteredAction<"public" | "internal", any, any>;
+
+const functionRegistry = new Map<FuncName, RegisteredFunc>();
+// const mutationRegistry = new Map<string, RegisteredMutation<"public" | "internal", any, any>>();
+// const queryRegistry = new Map<string, RegisteredQuery<"public" | "internal", any, any>>();
+// const actionRegistry = new Map<string, RegisteredAction<"public" | "internal", any, any>>();
+
+export function registerFunction(funcName: FuncName, registeredFunc: RegisteredFunc) {
+  functionRegistry.set(funcName, registeredFunc);
+}
 
 export function registerMutation<V extends FunctionVisibility>(
   registeredFunc: RegisteredMutation<V, any, any>,
   visibility: V
 ) {
   const funcRef = {
+    [functionName]: "registeredFunc.name",
     _type: "mutation",
     _visibility: visibility,
     _args: registeredFunc.exportArgs(),
     _returnType: registeredFunc.exportReturns(),
     _componentPath: undefined,
-  } satisfies FunctionReference<"mutation", V>;
+  } satisfies FunctionReference<"mutation", V> & { [functionName]: string };
 
   const funcName = getFunctionName(funcRef);
+  console.log("funcName", funcName);
 
-  mutationRegistry.set(funcName, registeredFunc);
+  //   mutationRegistry.set(funcName, registeredFunc);
   console.log("Registered mutation", funcRef);
 }
 
@@ -53,8 +63,9 @@ export function registerQuery<V extends FunctionVisibility>(
   } satisfies FunctionReference<"query", V>;
 
   const funcName = getFunctionName(funcRef);
+  console.log("funcName", funcName);
 
-  queryRegistry.set(funcName, registeredFunc);
+  //   queryRegistry.set(funcName, registeredFunc);
   console.log("Registered query", funcRef);
 }
 
@@ -71,49 +82,48 @@ export function registerAction<V extends FunctionVisibility>(
   } satisfies FunctionReference<"action", V>;
 
   const funcName = getFunctionName(funcRef);
+  console.log("funcName", funcName);
 
-  actionRegistry.set(funcName, registeredFunc);
+  //   actionRegistry.set(funcName, registeredFunc);
   console.log("Registered action", funcRef);
-}
-
-export function getMutation(func: FunctionReference<"mutation", "public" | "internal">) {
-  console.log("Getting mutation", func);
-  return mutationRegistry.get(getFunctionName(func));
-}
-
-export function getQuery(func: FunctionReference<"query", "public" | "internal">) {
-  console.log("Getting query", func);
-  return queryRegistry.get(getFunctionName(func));
-}
-
-export function getAction(func: FunctionReference<"action", "public" | "internal">) {
-  console.log("Getting action", func);
-  return actionRegistry.get(getFunctionName(func));
 }
 
 export async function invokeFunctionByType(
   func: AnyFunctionReference,
   argsStr: string
 ): Promise<any> {
-  console.log("Invoking function by type", func);
-  if (isQueryFunctionReference(func)) {
-    const fn = getQuery(func);
-    if (!fn) {
-      throw new Error(`Query Function ${func} is not registered`);
-    }
-    return fn.invokeQuery(argsStr);
-  } else if (isMutationFunctionReference(func)) {
-    const fn = getMutation(func);
-    if (!fn) {
-      throw new Error(`Mutation Function ${func} is not registered`);
-    }
-    return fn.invokeMutation(argsStr);
-  } else if (isActionFunctionReference(func)) {
-    const fn = getAction(func);
-    if (!fn) {
-      throw new Error(`Action Function ${func} is not registered`);
-    }
-    return fn.invokeAction(argsStr);
+  const funcName = getFunctionName(func);
+  const registeredFunc = functionRegistry.get(funcName) as RegisteredFunc;
+  if (!registeredFunc) {
+    throw new Error(`Function ${funcName} is not registered`);
   }
-  throw new Error(`Function ${func} is not a valid function reference`);
+
+  if (isRegisteredQuery(registeredFunc)) {
+    return registeredFunc.invokeQuery(argsStr);
+  } else if (isRegisteredMutation(registeredFunc)) {
+    return registeredFunc.invokeMutation(argsStr);
+  } else if (isRegisteredAction(registeredFunc)) {
+    return registeredFunc.invokeAction(argsStr);
+  }
+  //   console.log("Invoking function by type", func);
+  //   if (isQueryFunctionReference(func)) {
+  //     const fn = getQuery(func);
+  //     if (!fn) {
+  //       throw new Error(`Query Function ${func} is not registered`);
+  //     }
+  //     return fn.invokeQuery(argsStr);
+  //   } else if (isMutationFunctionReference(func)) {
+  //     const fn = getMutation(func);
+  //     if (!fn) {
+  //       throw new Error(`Mutation Function ${func} is not registered`);
+  //     }
+  //     return fn.invokeMutation(argsStr);
+  //   } else if (isActionFunctionReference(func)) {
+  //     const fn = getAction(func);
+  //     if (!fn) {
+  //       throw new Error(`Action Function ${func} is not registered`);
+  //     }
+  //     return fn.invokeAction(argsStr);
+  //   }
+  //   throw new Error(`Function ${func} is not a valid function reference`);
 }

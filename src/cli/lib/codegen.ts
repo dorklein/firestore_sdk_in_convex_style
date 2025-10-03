@@ -1,8 +1,8 @@
 import path from "path";
 import prettier from "prettier";
 import { withTmpDir, TempDir } from "../../bundler/fs.js";
-import { entryPoints } from "../../bundler/index.js";
-import { apiCodegen } from "../codegen_templates/api.js";
+import { entryPoints, getExportedConvexFunctions } from "../../bundler/index.js";
+import { apiCodegen, apiRegistryCodegen } from "../codegen_templates/api.js";
 import { dynamicDataModelDTS, noSchemaDataModelDTS } from "../codegen_templates/dataModel.js";
 import { readmeCodegen } from "../codegen_templates/readme.js";
 import { serverCodegen } from "../codegen_templates/server.js";
@@ -212,7 +212,18 @@ async function doApiCodegen(
     path.join(codegenDir, "api.d.ts"),
     opts
   );
-  const writtenFiles = ["api.js", "api.d.ts"];
+
+  const functionNames = await getExportedConvexFunctions(ctx, functionsDir);
+  const apiRegistryContent = apiRegistryCodegen(modulePaths, functionNames);
+  await writeFormattedFile(
+    ctx,
+    tmpDir,
+    apiRegistryContent,
+    "typescript",
+    path.join(codegenDir, "apiRegistry.ts"),
+    opts
+  );
+  const writtenFiles = ["api.js", "api.d.ts", "apiRegistry.ts"];
 
   return writtenFiles;
 }

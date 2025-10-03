@@ -1,9 +1,12 @@
 import path from "path";
 import chalk from "chalk";
+import { pathToFileURL } from "url";
 
 import { Filesystem, consistentPathSort } from "./fs.js";
 import { Context } from "./context.js";
 import { logVerbose, logWarning } from "./log.js";
+import { AnyFunctionReference } from "../server/api.js";
+import { RegisteredAction, RegisteredMutation, RegisteredQuery } from "../server/registration.js";
 export { nodeFs, RecordingFs } from "./fs.js";
 export type { Filesystem } from "./fs.js";
 
@@ -221,3 +224,193 @@ export function mustBeIsolate(relPath: string): boolean {
 
 //   return { isolate, node };
 // }
+type RegisteredConvexFunction =
+  | RegisteredQuery<"public" | "internal", any, any>
+  | RegisteredMutation<"public" | "internal", any, any>
+  | RegisteredAction<"public" | "internal", any, any>;
+
+export async function getExportedConvexFunctions(
+  ctx: Context,
+  dir: string
+): Promise<Map<string, string[]>> {
+  const absModulePaths = await entryPoints(ctx, dir);
+  const functionNames: Map<string, string[]> = new Map();
+  console.log("absModulePaths", absModulePaths);
+
+  for (const modulePath of absModulePaths) {
+    try {
+      const module = await loadModule(modulePath);
+      console.log("modulePath", modulePath);
+      console.log("module", module);
+      throw new Error("test");
+      const moduleExports = extractConvexFunctionNames(module, modulePath, dir);
+      functionNames.set(modulePath, moduleExports);
+    } catch (error) {
+      logVerbose(chalk.yellow(`Failed to load module ${modulePath}: ${error}`));
+    }
+  }
+
+  return functionNames;
+}
+
+export async function getExportedFunctionRefs(
+  ctx: Context,
+  dir: string
+): Promise<AnyFunctionReference[]> {
+  const absModulePaths = await entryPoints(ctx, dir);
+  const functionRefs: AnyFunctionReference[] = [];
+
+  for (const modulePath of absModulePaths) {
+    try {
+      const module = await loadModule(modulePath);
+      const moduleFunctionRefs = extractFunctionReferences(module, modulePath, dir);
+      functionRefs.push(...moduleFunctionRefs);
+    } catch (error) {
+      logVerbose(chalk.yellow(`Failed to load module ${modulePath}: ${error}`));
+    }
+  }
+
+  return functionRefs;
+}
+
+export async function getExportedRegisteredConvexFunctions(
+  ctx: Context,
+  dir: string
+): Promise<RegisteredConvexFunction[]> {
+  const absModulePaths = await entryPoints(ctx, dir);
+  const registeredFunctions: RegisteredConvexFunction[] = [];
+
+  for (const modulePath of absModulePaths) {
+    try {
+      const module = await loadModule(modulePath);
+      const moduleRegisteredFunctions = extractRegisteredConvexFunctions(module);
+      registeredFunctions.push(...moduleRegisteredFunctions);
+    } catch (error) {
+      logVerbose(chalk.yellow(`Failed to load module ${modulePath}: ${error}`));
+    }
+  }
+
+  return registeredFunctions;
+}
+
+/**
+ * Dynamically loads a module using dynamic import
+ */
+async function loadModule(modulePath: string): Promise<any> {
+  const fileUrl = pathToFileURL(modulePath).href;
+  const module = await import(fileUrl);
+  return module;
+}
+
+/**
+ * Extracts Convex function names from a loaded module
+ */
+function extractConvexFunctionNames(module: any, modulePath: string, baseDir: string): string[] {
+  const functionNames: string[] = [];
+  const relativePath = path.relative(baseDir, modulePath);
+  const moduleName = relativePath.replace(/\.[^/.]+$/, ""); // Remove extension
+
+  // Check all exports in the module
+  for (const [exportName, exportValue] of Object.entries(module)) {
+    if (isConvexFunction(exportValue)) {
+      const functionName = exportName === "default" ? moduleName : `${moduleName}:${exportName}`;
+      functionNames.push(functionName);
+    }
+  }
+
+  return functionNames;
+}
+
+/**
+ * Extracts function references from a loaded module
+ */
+function extractFunctionReferences(
+  module: any,
+  modulePath: string,
+  baseDir: string
+): AnyFunctionReference[] {
+  const functionRefs: AnyFunctionReference[] = [];
+  const relativePath = path.relative(baseDir, modulePath);
+  const moduleName = relativePath.replace(/\.[^/.]+$/, ""); // Remove extension
+
+  // Check all exports in the module
+  for (const [exportName, exportValue] of Object.entries(module)) {
+    if (isConvexFunction(exportValue)) {
+      // Create a function reference for this exported function
+      const functionName = exportName === "default" ? moduleName : `${moduleName}:${exportName}`;
+      const functionRef = createFunctionReference(functionName, exportValue);
+      if (functionRef) {
+        functionRefs.push(functionRef);
+      }
+    }
+  }
+
+  return functionRefs;
+}
+
+/**
+ * Extracts registered Convex functions from a loaded module
+ */
+function extractRegisteredConvexFunctions(module: any): RegisteredConvexFunction[] {
+  const registeredFunctions: RegisteredConvexFunction[] = [];
+
+  // Check all exports in the module
+  for (const [, exportValue] of Object.entries(module)) {
+    if (isConvexFunction(exportValue)) {
+      registeredFunctions.push(exportValue as RegisteredConvexFunction);
+    }
+  }
+
+  return registeredFunctions;
+}
+
+/**
+ * Checks if a value is a Convex function by checking for the isConvexFunction property
+ */
+function isConvexFunction(value: any): boolean {
+  return value && typeof value === "object" && value.isConvexFunction === true;
+}
+
+/**
+ * Creates a function reference from a function name and registered function
+ */
+function createFunctionReference(
+  functionName: string,
+  registeredFunc: any
+): AnyFunctionReference | null {
+  try {
+    // Create a function reference object that matches the expected interface
+    const functionRef = {
+      _type: getFunctionType(registeredFunc),
+      _visibility: getFunctionVisibility(registeredFunc),
+      _args: {},
+      _returnType: {},
+      _componentPath: undefined,
+      [functionName]: functionName, // This is used by getFunctionName
+    };
+
+    return functionRef as AnyFunctionReference;
+  } catch (error) {
+    logVerbose(chalk.yellow(`Failed to create function reference for ${functionName}: ${error}`));
+    return null;
+  }
+}
+
+/**
+ * Determines the function type from a registered function
+ */
+function getFunctionType(registeredFunc: any): "query" | "mutation" | "action" {
+  if (registeredFunc.isQuery) return "query";
+  if (registeredFunc.isMutation) return "mutation";
+  if (registeredFunc.isAction) return "action";
+  throw new Error("Unknown function type");
+}
+
+/**
+ * Determines the function visibility from a registered function
+ */
+function getFunctionVisibility(registeredFunc: any): "public" | "internal" {
+  if (registeredFunc.isPublic) return "public";
+  if (registeredFunc.isInternal) return "internal";
+  throw new Error("Unknown function visibility");
+}

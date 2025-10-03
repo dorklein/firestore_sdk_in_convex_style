@@ -184,6 +184,7 @@ export const mutationGeneric: MutationBuilder<any, "public"> = ((
   const func = dontCallDirectly("mutation", handler) as RegisteredMutation<"public", any, any>;
 
   assertNotBrowser();
+  func.isConvexFunction = true;
   func.isMutation = true;
   func.isPublic = true;
   func.invokeMutation = (argsStr) => invokeMutation(handler, argsStr);
@@ -222,6 +223,7 @@ export const internalMutationGeneric: MutationBuilder<any, "internal"> = ((
   >;
 
   assertNotBrowser();
+  func.isConvexFunction = true;
   func.isMutation = true;
   func.isInternal = true;
   func.invokeMutation = (argsStr) => invokeMutation(handler, argsStr);
@@ -273,6 +275,7 @@ export const queryGeneric: QueryBuilder<any, "public"> = ((
   const func = dontCallDirectly("query", handler) as RegisteredQuery<"public", any, any>;
 
   assertNotBrowser();
+  func.isConvexFunction = true;
   func.isQuery = true;
   func.isPublic = true;
   func.invokeQuery = (argsStr) => invokeQuery(handler, argsStr);
@@ -306,6 +309,7 @@ export const internalQueryGeneric: QueryBuilder<any, "internal"> = ((
   const func = dontCallDirectly("internalQuery", handler) as RegisteredQuery<"internal", any, any>;
 
   assertNotBrowser();
+  func.isConvexFunction = true;
   func.isQuery = true;
   func.isInternal = true;
   func.invokeQuery = (argsStr) => invokeQuery(handler as any, argsStr);
@@ -353,6 +357,7 @@ export const actionGeneric: ActionBuilder<any, "public"> = ((
   const func = dontCallDirectly("action", handler) as RegisteredAction<"public", any, any>;
 
   assertNotBrowser();
+  func.isConvexFunction = true;
   func.isAction = true;
   func.isPublic = true;
   func.invokeAction = (argsStr) => invokeAction(handler, argsStr);
@@ -388,6 +393,7 @@ export const internalActionGeneric: ActionBuilder<any, "internal"> = ((
   >;
 
   assertNotBrowser();
+  func.isConvexFunction = true;
   func.isAction = true;
   func.isInternal = true;
   func.invokeAction = (argsStr) => invokeAction(handler, argsStr);

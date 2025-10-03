@@ -12,7 +12,7 @@ import { Readable } from "stream";
 
 export type NormalizedPath = string;
 
-const tmpDirOverrideVar = "CONVEX_TMPDIR";
+const tmpDirOverrideVar = "FIRESTORE_CONVEX_STYLE_TMPDIR";
 function tmpDirPath() {
   // Allow users to override the temporary directory path with an environment variable.
   // This override needs to (1) be project-specific, since the user may have projects

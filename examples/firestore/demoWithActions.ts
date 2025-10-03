@@ -32,6 +32,8 @@ export const processUserAction = internalAction({
     operation: v.string(),
   },
   handler: async (ctx, args) => {
+    // Inspect the function reference
+
     // Simulate user processing
     const customerId = await ctx.runMutation(internal.functions.createCustomer, {
       userId: args.userId,

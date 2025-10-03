@@ -26,6 +26,8 @@ async function main() {
   //   const user = await runner.runQuery(getCustomerById, { customerId: customerId });
   //   console.log(user);
 
+  console.log({ api, internal });
+
   const res = await runner.runAction(processUserAction, {
     userId: "users:abc123" as Id<"users">,
     customerId: "customers:abc123" as Id<"customers">,
